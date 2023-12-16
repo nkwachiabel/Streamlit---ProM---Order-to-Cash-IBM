@@ -1,5 +1,5 @@
-streamlit
-pandas
-plotly
-numpy
-graphviz
+streamlit==1.29.0
+pandas==1.4.1
+plotly==5.18.0
+numpy==1.22.2
+graphviz==0.19.1
