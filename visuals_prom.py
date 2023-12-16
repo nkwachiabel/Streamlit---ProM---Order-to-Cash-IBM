@@ -1,6 +1,5 @@
 import streamlit as st
 from streamlit_agraph import agraph, Node, Edge, Config
-import random
 import plotly.express as px
 import plotly.graph_objects as go
 import graphviz
