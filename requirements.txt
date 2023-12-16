@@ -4,3 +4,4 @@ plotly==5.18.0
 numpy==1.22.2
 graphviz==0.19.1
 streamlit-agraph==0.0.45
+matplotlib==3.5.1
