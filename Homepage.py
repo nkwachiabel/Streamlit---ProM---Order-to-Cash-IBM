@@ -109,8 +109,7 @@ if st.button('Analyse dataset'):
             st.dataframe(df2)
 
         df2 = df2[(df2[timestamp_column()]>=start_date) & (df2[timestamp_column()]< end_date + pd.Timedelta(days=1))].copy()
-        # df2 = df2[df2['First_Activity'].isin(first_activities) & df2['Last_Activity'].isin(last_activities)]
-
+        
         filtered_df = df2.copy()
         filtered_df = filtered_df[filtered_df['First_Activity'].isin(first_activities) & filtered_df['Last_Activity'].isin(last_activities)]
         filtered_df = initial_dataset_filtered_df(filtered_df, case_id_column(), activity_column(), timestamp_column())
@@ -124,7 +123,3 @@ if st.button('Analyse dataset'):
         st.session_state['first_activities'] = first_activities
         st.session_state['last_activities'] = last_activities
         st.session_state['original_dataset'] = df
-
-# def get_dataframe():
-#     return filtered_df
-

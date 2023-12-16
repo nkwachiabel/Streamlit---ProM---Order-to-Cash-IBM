@@ -24,8 +24,6 @@ else:
 st.title("Timing Analysis")
 st.divider()
 
-
-
 with st.sidebar:
     st.markdown('<span style="font-size: 16px; font-weight: bold;">Select calculation metric</span>', unsafe_allow_html=True)
     calculation_metric = st.selectbox("Metric", ['Median', 'Average'], index=0)

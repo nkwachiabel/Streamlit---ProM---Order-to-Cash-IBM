@@ -96,12 +96,10 @@ with st.container(border=True):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-
 with st.expander(':point_right: View Selected Case'):
     case_ids_filtered = filtered_df_updated[case_id_column].unique()
     filtered_df_view = original_dataset[original_dataset[case_id_column].isin(case_ids_filtered)]
     st.dataframe(filtered_df_view, hide_index=True)
-
 
 css='''
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {

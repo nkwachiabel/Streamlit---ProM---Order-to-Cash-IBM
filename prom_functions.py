@@ -314,12 +314,12 @@ def activity_gant_chart(df,case_id,timestamp,activity):
     df_1 = df_1[[case_id, activity, 'Start', 'End']]
     return df_1
 
-def change_label_style(font_size=30,line_height=15):
-    st.markdown("""
-    <style>
-    [data-testid="stSidebar"][aria-expanded="true"]{
-           min-width: 450px;
-           max-width: 450px;
-       }
-    </style>
-    """, unsafe_allow_html=True)
+# def change_label_style(font_size=30,line_height=15):
+#     st.markdown("""
+#     <style>
+#     [data-testid="stSidebar"][aria-expanded="true"]{
+#            min-width: 450px;
+#            max-width: 450px;
+#        }
+#     </style>
+#     """, unsafe_allow_html=True)
