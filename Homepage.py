@@ -42,6 +42,21 @@ with st.container(border=True):
             **Reerences**: https://doi.org/10.1007/s00607-015-0441-1
         '''
         st.markdown(credits_line)
+        personal_details = '''
+            **[Github repository](https://github.com/nkwachiabel/Process-Mining-Helpdesk-of-an-Italian-coy)**
+        '''
+        st.markdown(personal_details)
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">:mailbox: Get in touch with me!</span>', unsafe_allow_html=True)
+        contact_form = """
+        <form action="https://formsubmit.co/nkwachi.abel@vinatics.com" method="POST">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="text" name="Name" placeholder="Your name" required>
+            <input type="email" name="Email" placeholder="Your email" required>
+            <textarea name="message" placeholder="Message"></textarea>
+            <button type="submit">Send</button>
+        </form>
+        """
+        st.markdown(contact_form, unsafe_allow_html=True)
 
 with st.container(border=True):
     colGoals, colMethodology, colTechUsed = st.columns(3)
@@ -78,3 +93,31 @@ with st.container(border=True):
 with st.expander(":point_right: Data View"):
     st.dataframe(df)
 
+css = '''
+input[type=text], input[type=email], textarea {
+  width: 100%; /* Full width */
+  padding: 12px; /* Some padding */ 
+  border: 1px solid #ccc; /* Gray border */
+  border-radius: 4px; /* Rounded borders */
+  box-sizing: border-box; /* Make sure that padding and width stays in place */
+  margin-top: 6px; /* Add a top margin */
+  margin-bottom: 16px; /* Bottom margin */
+  resize: vertical /* Allow the user to vertically resize the textarea (not horizontally) */
+}
+
+/* Style the submit button with a specific background color etc */
+button[type=submit] {
+  background-color: #04AA6D;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* When moving the mouse over the submit button, add a darker green color */
+button[type=submit]:hover {
+  background-color: #45a049;
+}
+'''
+st.markdown(f'<style>{css}</style>',unsafe_allow_html=True)
