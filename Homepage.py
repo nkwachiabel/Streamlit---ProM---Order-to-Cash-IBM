@@ -48,7 +48,7 @@ with st.container(border=True):
         st.markdown(personal_details)
         st.markdown('<span style="font-size: 20px; font-weight: bold;">:mailbox: Get in touch with me!</span>', unsafe_allow_html=True)
         contact_form = """
-        <form action="https://formsubmit.co/nkwachi.abel@vinatics.com" method="POST">
+        <form action="https://formsubmit.co/3b046e55c482e13b27281f351ab6b27e" method="POST">
             <input type="hidden" name="_captcha" value="false">
             <input type="text" name="Name" placeholder="Your name" required>
             <input type="email" name="Email" placeholder="Your email" required>
