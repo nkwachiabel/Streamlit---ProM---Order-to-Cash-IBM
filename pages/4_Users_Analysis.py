@@ -71,7 +71,7 @@ with st.container(border=True):
         st.write(transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
     with med_dur_user_col:
-        st.subheader('Median duration of activities per user')
+        st.subheader('Med. duration of activities per user')
         st.data_editor(event_df, hide_index=True, use_container_width=True)
 
 with st.container(border=True):
