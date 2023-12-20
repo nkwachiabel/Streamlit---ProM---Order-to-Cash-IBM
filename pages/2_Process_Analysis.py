@@ -2,41 +2,41 @@ import streamlit as st
 import pandas as pd
 from prom_functions import *
 from visuals_prom import *
+from dataset_details import *
 
-st.set_page_config(page_title="Process Mining O2C", page_icon=":bar_chart:", layout="wide")
+colCase = case_id_column()
+colActivity = activity_column()
+colTimestamp = timestamp_column()
+colResources = resources_col()
+colProduct = product_col()
+first_activities = first_activity()
+last_activities = last_activity()
+colCustomer = customer_col()
+filtered_df = filtered_dataset()
+original_df = full_dataset()
+full_df = full_dataset_edited()
 
-if 'filtered_df' not in st.session_state or 'case_id' not in st.session_state or 'activity' not in st.session_state or 'timestamp' not in st.session_state or 'first_activities' not in st.session_state or 'last_activities' not in st.session_state:
-    st.warning("Please upload a dataset and select the required column from the homepage")
-    st.stop()
-else:
-    filtered_df = st.session_state['filtered_df']
-    full_df = st.session_state['full_df']
-    case_id_column = st.session_state['case_id']
-    activity_column = st.session_state['activity']
-    timestamp_column = st.session_state['timestamp']
-    first_activities = st.session_state['first_activities']
-    last_activities = st.session_state['last_activities']
-    original_dataset = st.session_state['original_dataset']
 
 st.title("Process Analysis")
-
 st.divider()
 
 # First row and column
-vartant_column, conn_column, graph_type_column, rankdir_column, = st.columns([2,2,2,2])
+product_column, vartant_column, conn_column, graph_type_column, rankdir_column, = st.columns([2,2,2,2,2])
 
 # Get the unique variants list and unique connections list
 first_activity_list = get_unique_items(filtered_df, 'First_Activity')
 last_activity_list = get_unique_items(filtered_df, 'Last_Activity')
 unique_variant_list = get_unique_items(filtered_df,'Variants')
-process_details_df = process_details(filtered_df, case_id_column, timestamp_column, activity_column)
+process_details_df = process_details(filtered_df, colCase, colTimestamp, colActivity)
 unique_connections = get_unique_items(process_details_df,'Connection')
+unique_product_list = get_unique_items(filtered_df,colProduct)
 
 # Filters
 # Activity filter
 with st.sidebar:
-    st.markdown('<span style="font-size: 16px; font-weight: bold;">Filter by Activity</span>', unsafe_allow_html=True)
-    activity_list = get_unique_items(filtered_df,activity_column)
+    st.markdown('<span style="font-size: 16px; font-weight: bold;">Filters</span>', unsafe_allow_html=True)
+    st.write('Activities')
+    activity_list = get_unique_items(filtered_df,colActivity)
     selected_activities = []
     for activ in activity_list:
         is_selected = st.checkbox(activ, key=activ, value=True)
@@ -45,13 +45,18 @@ with st.sidebar:
 
 # First activity filter
 with st.sidebar:
-    st.markdown('<span style="font-size: 16px; font-weight: bold;">Filter by First Activity</span>', unsafe_allow_html=True)
+    # st.markdown('<span style="font-size: 16px; font-weight: bold;">Filter by First Activity</span>', unsafe_allow_html=True)
     selected_first_activities = st.multiselect(options=first_activity_list, label="First activities", placeholder="Select activity")
 
 # Last activity filter
 with st.sidebar:
-    st.markdown('<span style="font-size: 16px; font-weight: bold;">Filter by Last Activity</span>', unsafe_allow_html=True)
+    # st.markdown('<span style="font-size: 16px; font-weight: bold;">Filter by Last Activity</span>', unsafe_allow_html=True)
     selected_last_activities = st.multiselect(options=last_activity_list, label="Last activities", placeholder="Select activity")
+
+# Product filter
+with product_column:
+    unique_product_list = sorted(unique_product_list, reverse=False)
+    product_list = st.multiselect(options=unique_product_list, label="Products", placeholder="Select product")
 
 # Variants filter
 with vartant_column:
@@ -74,7 +79,10 @@ with rankdir_column:
 filtered_df_updated = filtered_df.copy()
 # Activity filter, # First activity filter, # Last activity filter, # Variants filter, # Connections filter
 if selected_activities:
-    filtered_df_updated = filtered_df_updated[filtered_df_updated[activity_column].isin(selected_activities)]
+    filtered_df_updated = filtered_df_updated[filtered_df_updated[colActivity].isin(selected_activities)]
+
+if product_list:
+    filtered_df_updated = filtered_df_updated[filtered_df_updated[colProduct].isin(product_list)]
 
 if selected_first_activities:
     filtered_df_updated = filtered_df_updated[filtered_df_updated['First_Activity'].isin(selected_first_activities)]
@@ -87,31 +95,35 @@ if variant_list:
 
 if filtered_connections:
     filtered_b = process_details_df[process_details_df['Connection'].isin(filtered_connections)]
-    case_ids = filtered_b[case_id_column].unique()
-    filtered_df_updated = filtered_df_updated[filtered_df_updated[case_id_column].isin(case_ids)]
+    case_ids = filtered_b[colCase].unique()
+    filtered_df_updated = filtered_df_updated[filtered_df_updated[colCase].isin(case_ids)]
 
 # Update process details DataFrame based on filtered cases
 if not filtered_df_updated.empty:
-    process_details_df = process_details(filtered_df_updated, case_id_column, timestamp_column, activity_column)
+    process_details_df = process_details(filtered_df_updated, colCase, colTimestamp, colActivity)
 else:
     process_details_df = process_details_df
 
-# filtered_df_updated = filtered_df_updated[filtered_df_updated[activity_column].isin(selected_activities) & filtered_df_updated['First_Activity'].isin(selected_first_activities) & filtered_df_updated['Last_Activity'].isin(selected_last_activities)]
-filtered_df_updated = filtered_df_updated.sort_values(by=[case_id_column, timestamp_column], ascending=True).reset_index(drop=True)
+# filtered_df_updated = filtered_df_updated[filtered_df_updated[colActivity].isin(selected_activities) & filtered_df_updated['First_Activity'].isin(selected_first_activities) & filtered_df_updated['Last_Activity'].isin(selected_last_activities)]
+filtered_df_updated = filtered_df_updated.sort_values(by=[colCase, colTimestamp], ascending=True).reset_index(drop=True)
 
-no_of_cases = unique_count(filtered_df_updated,case_id_column)
-no_of_activities = unique_count(filtered_df_updated,activity_column)
-no_of_events = total_count(filtered_df_updated,activity_column)
+no_of_cases = unique_count(filtered_df_updated,colCase)
+no_of_activities = unique_count(filtered_df_updated,colActivity)
+no_of_events = total_count(filtered_df_updated,colActivity)
 no_of_variants = unique_count(filtered_df_updated,'Variants')
+escalation_rate = filtered_df_updated[filtered_df_updated[colActivity]=='Require upgrade'][colCase].nunique()
+escalation_rate = (escalation_rate/no_of_cases)*100
+recurrence_rate = recurring_cases(filtered_df_updated,colCustomer, colProduct, colCase)
+fcr_rate = 100-recurrence_rate
 
-start_act = start_and_end_activities(filtered_df_updated, case_id_column, activity_column, grouping='First_Activity',level='Start')
-end_act = start_and_end_activities(filtered_df_updated, case_id_column, activity_column, grouping='Last_Activity',level='End')
-pro_det = graph_group_timing(process_details_df, case_id_column, timestamp_column, activity_column)
-gra_coun = graph_count(filtered_df_updated, activity_column)
+start_act = start_and_end_activities(filtered_df_updated, colCase, colActivity, grouping='First_Activity',level='Start')
+end_act = start_and_end_activities(filtered_df_updated, colCase, colActivity, grouping='Last_Activity',level='End')
+pro_det = graph_group_timing(process_details_df, colCase, colTimestamp, colActivity)
+gra_coun = graph_count(filtered_df_updated, colActivity)
 
 
 with st.container(border=True):
-    cases_metric, activity_metric, event_metric, variant_metric = st.columns(4)
+    cases_metric, activity_metric, event_metric, escalation_metric, fcr_metric, recurrence_metric, variant_metric = st.columns(7)
 
     # No. of closed cases
     with cases_metric:
@@ -133,6 +145,18 @@ with st.container(border=True):
         no_of_variants = format(no_of_variants, ",.0f")
         st.metric(label="Number of variants", value=no_of_variants)
 
+    with escalation_metric:
+        escalation_rate = "{:.2f}%".format(escalation_rate)
+        st.metric(label="Escalation rate", value=escalation_rate, help='The percent of cases that required upgrade')
+
+    with fcr_metric:
+        fcr_rate = "{:.2f}%".format(fcr_rate)
+        st.metric(label="FCR rate", value=fcr_rate, help='First Call Resolution Rate - The percent of cases that was resolved during the first interaction by a customer with a support team for a particular product')
+
+    with recurrence_metric:
+        recurrence_rate = "{:.2f}%".format(recurrence_rate)
+        st.metric(label="Recurrence rate", value=recurrence_rate, help='Recurrence rate is the percent of cases that was not resolved after the first interaction with a support team')
+
 with st.container(border=True):
     process_graph_column, variant_column = st.columns([4,2])
 
@@ -140,16 +164,16 @@ with st.container(border=True):
         st.subheader(" :curly_loop: Process flow Graph")
         # st.divider()
         if graph_type == 'Show duration and case count':
-            process_flow_timing(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=activity_column,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
+            process_flow_timing(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
         elif graph_type == 'Show case count only':
-            process_flow(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=activity_column,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
+            process_flow(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
         else:
-            process_flow_duration(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=activity_column,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
+            process_flow_duration(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
 
     with variant_column:
         st.subheader('Variants')
         # st.divider()
-        variant_tab = var_table_process_analysis(filtered_df_updated,'Variants',case_id_column)
+        variant_tab = var_table_process_analysis(filtered_df_updated,'Variants',colCase)
         # st.markdown('<span style="font-size: 16px; font-weight: bold;">Variants</span>', unsafe_allow_html=True)
         st.data_editor(
         variant_tab,
@@ -168,13 +192,13 @@ with st.container(border=True):
     )
 
 with st.container(border=True):
-    transition_matrix_df = process_details_df.pivot_table(index=activity_column, columns=activity_column+'_2', values=case_id_column, aggfunc='count').fillna(0)
-    st.subheader("Transition Matrix")
+    transition_matrix_df = process_details_df.pivot_table(index=colActivity, columns=colActivity+'_2', values=colCase, aggfunc='count').fillna(0)
+    st.subheader("Transition Matrix", help='This shows the transitions between various activities in the process. The rows are the starting point (source), the columns are the end point (target) and the numbers are the number of times a particular transition occurs')
     st.write(transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
 with st.expander(':point_right: View Selected Cases'):
-    case_ids_filtered = filtered_df_updated[case_id_column].unique()
-    filtered_df_view = original_dataset[original_dataset[case_id_column].isin(case_ids_filtered)]
+    case_ids_filtered = filtered_df_updated[colCase].unique()
+    filtered_df_view = original_df[original_df[colCase].isin(case_ids_filtered)]
     st.dataframe(filtered_df_view, hide_index=True)
 
 

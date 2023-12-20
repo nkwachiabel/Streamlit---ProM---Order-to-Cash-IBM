@@ -4,6 +4,11 @@ import numpy as np
 
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November','December']
 
+@st.cache_data
+def load_data(path: str):
+    df = pd.read_csv(path)
+    return df
+
 def initial_dataset_prep(df, case_column, activity_column, timestamp_column):
     df[timestamp_column] = pd.to_datetime(df[timestamp_column])
     df['Year'] = df[timestamp_column].dt.year
@@ -314,12 +319,24 @@ def activity_gant_chart(df,case_id,timestamp,activity):
     df_1 = df_1[[case_id, activity, 'Start', 'End']]
     return df_1
 
-# def change_label_style(font_size=30,line_height=15):
-#     st.markdown("""
-#     <style>
-#     [data-testid="stSidebar"][aria-expanded="true"]{
-#            min-width: 450px;
-#            max-width: 450px;
-#        }
-#     </style>
-#     """, unsafe_allow_html=True)
+def recurring_cases(df,customer, product, case_id):
+    recurring_cases = df.groupby([customer, product])[case_id].nunique()
+    cases_with_recurrence = recurring_cases[recurring_cases > 1]
+    total_cases = df[case_id].nunique()
+    recurrence_rate = (len(cases_with_recurrence) / total_cases) * 100
+    return recurrence_rate
+
+
+# Individual activities per user
+def activities_per_user(df,resource,activity):
+    iapu = df.copy()
+    iapu = iapu[[resource,activity]]
+    iapu = iapu.groupby([resource,activity]).size()
+    iapu = iapu.to_frame(name='Weight').reset_index()
+    return iapu
+
+#Handover of work
+# def handover_of_work
+# process_flow_user = sortnew[['Case', 'Start User','End User']]
+# process_flow_user = process_flow_user.groupby(['Start User','End User']).size()
+# process_flow_user = process_flow_user.to_frame(name='Weight').reset_index()

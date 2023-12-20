@@ -261,3 +261,49 @@ def vertical_bar_case_duration(df, x_col,y_col,label,medianduration, color_graph
                 )
         )
         st.plotly_chart(fig, use_container_width=True)
+
+def user_activity_graph(df):
+    ZA = graphviz.Digraph(format='png')
+    ZA.attr(rankdir='TB')
+    ZA.attr('node', shape='rectangle', height='0.3',width='0.3', fontname="Sans Bold")
+    ZA.attr('edge', arrowhead='vee', arrowtail='inv',fontname="Sans Bold Italic")
+
+    max_node = 3
+    max_case_id = df['Weight'].max()
+    nodelist2 = []
+    for idx, row in df.iterrows():
+        node11, node22, weight2 = [str(i) for i in row]
+        
+        if node11 not in nodelist2:
+            ZA.node(node11)
+            nodelist2.append(node22)
+        if node22 not in nodelist2:
+            ZA.node(node22)
+            nodelist2.append(node22)
+            
+        ZA.edge(node11, node22)
+
+    st.graphviz_chart(ZA, use_container_width=True)
+
+def workgroup_activity_graph(df):
+    ZA = graphviz.Digraph(format='png')
+    ZA.attr(rankdir='TB')
+    ZA.attr('node', shape='rectangle', height='0.3',width='0.3', fontname="Sans Bold")
+    ZA.attr('edge', arrowhead='vee', arrowtail='inv',fontname="Sans Bold Italic")
+
+    max_node = 3
+    max_case_id = df['Weight'].max()
+    nodelist2 = []
+    for idx, row in df.iterrows():
+        node11, node22, weight2 = [str(i) for i in row]
+        
+        if node11 not in nodelist2:
+            ZA.node(node11)
+            nodelist2.append(node22)
+        if node22 not in nodelist2:
+            ZA.node(node22)
+            nodelist2.append(node22)
+            
+        ZA.edge(node11, node22, label=str(weight2))
+
+    st.graphviz_chart(ZA, use_container_width=True)
