@@ -18,12 +18,33 @@ filtered_df = filtered_dataset()
 original_df = full_dataset()
 full_df = full_dataset_edited()
 
+unique_product_list = get_unique_items(filtered_df,colProduct)
+unique_product_list = sorted(unique_product_list, reverse=False)
+
+unique_ordertype_list = get_unique_items(filtered_df,'OrderType')
+unique_ordertype_list = sorted(unique_ordertype_list, reverse=False)
+
 st.title("Timing Analysis")
 st.divider()
 
 with st.sidebar:
     st.markdown('<span style="font-size: 16px; font-weight: bold;">Select calculation metric</span>', unsafe_allow_html=True)
     calculation_metric = st.selectbox("Metric", ['Median', 'Average'], index=0)
+
+# Product filter
+with st.sidebar:
+    product_list = st.multiselect(options=unique_product_list, label="Products", placeholder="Select product")
+
+with st.sidebar:
+    ordertype_list = st.multiselect(options=unique_ordertype_list, label="Order type", placeholder="Select order type")
+
+filtered_df = filtered_df.copy()
+
+if product_list:
+    filtered_df = filtered_df[filtered_df[colProduct].isin(product_list)]
+
+if ordertype_list:
+    filtered_df = filtered_df[filtered_df['OrderType'].isin(ordertype_list)]
 
 # calculations
 no_of_cases = unique_count(filtered_df,colCase) # no of cases
@@ -33,6 +54,20 @@ min_dur = case_dur['Case_Duration_days'].min() # minimum case duration
 med_dur = case_dur['Case_Duration_days'].median() # median case duration
 avg_dur = round(case_dur['Case_Duration_days'].mean(),0) # average case duration
 max_dur = case_dur['Case_Duration_days'].max() # maximum case duration
+
+distinct_log = filtered_df[filtered_df['Event_ID'] == 1].reset_index(drop=True)
+distinct_log = pd.merge(distinct_log, case_dur, right_on=colCase, left_on=colCase)
+
+if calculation_metric == 'Median':
+    product_hierarchy_timing = distinct_log.groupby([colProduct])['Case_Duration_days'].median().reset_index()
+else:
+    product_hierarchy_timing = distinct_log.groupby([colProduct])['Case_Duration_days'].mean().reset_index()
+product_hierarchy_timing = product_hierarchy_timing.sort_values(by=['Case_Duration_days'], ascending=False)
+if calculation_metric == 'Median':
+    order_type_timing = distinct_log.groupby(['OrderType'])['Case_Duration_days'].median().reset_index()
+else:
+    order_type_timing = distinct_log.groupby(['OrderType'])['Case_Duration_days'].mean().reset_index()
+order_type_timing = order_type_timing.sort_values(by=['Case_Duration_days'], ascending=False)
 
 if calculation_metric == 'Median':
     sla_rate1 = case_dur[case_dur['Case_Duration_days'] > med_dur][colCase].count()
@@ -112,7 +147,6 @@ with st.container(border=True):
     st.write()
     st.write(transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
     
-
 with st.container(border=True):
     case_duration_column, activities_duration_column = st.columns(2)
     # case duration column
@@ -127,9 +161,15 @@ with st.container(border=True):
             st.subheader('Average duration of activities')
         st.dataframe(activity_duration, hide_index=True, use_container_width=True)
 
+with st.container(border=True):
+    order_type_col, product_hierar_col = st.columns(2)
+    with order_type_col:
+        st.subheader('Duration per order type')
+        st.dataframe(order_type_timing, hide_index=True, use_container_width=True)
 
-# st.write(case_dur[case_dur['Case_Duration_days']>med_dur][colCase].count())
-
+    with product_hierar_col:
+        st.subheader('Duration per product hierarchy')
+        st.dataframe(product_hierarchy_timing, hide_index=True, use_container_width=True)
 
 css='''
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
@@ -145,6 +185,9 @@ css='''
 [data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
     width: fit-content;
     margin: auto;
+}
+[data-testid="stMetricValue"] > div {
+    font-size: 1.5rem;
 }
 '''
 st.markdown(f'<style>{css}</style>',unsafe_allow_html=True)

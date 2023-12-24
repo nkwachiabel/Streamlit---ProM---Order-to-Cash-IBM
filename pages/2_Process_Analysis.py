@@ -16,12 +16,11 @@ filtered_df = filtered_dataset()
 original_df = full_dataset()
 full_df = full_dataset_edited()
 
-
 st.title("Process Analysis")
 st.divider()
 
 # First row and column
-product_column, vartant_column, conn_column, graph_type_column, rankdir_column, = st.columns([2,2,2,2,2])
+product_column, vartant_column, conn_column = st.columns([2,2,2])
 
 # Get the unique variants list and unique connections list
 first_activity_list = get_unique_items(filtered_df, 'First_Activity')
@@ -45,12 +44,10 @@ with st.sidebar:
 
 # First activity filter
 with st.sidebar:
-    # st.markdown('<span style="font-size: 16px; font-weight: bold;">Filter by First Activity</span>', unsafe_allow_html=True)
     selected_first_activities = st.multiselect(options=first_activity_list, label="First activities", placeholder="Select activity")
 
 # Last activity filter
 with st.sidebar:
-    # st.markdown('<span style="font-size: 16px; font-weight: bold;">Filter by Last Activity</span>', unsafe_allow_html=True)
     selected_last_activities = st.multiselect(options=last_activity_list, label="Last activities", placeholder="Select activity")
 
 # Product filter
@@ -67,14 +64,6 @@ with vartant_column:
 with conn_column:
     unique_connections = sorted(unique_connections, reverse=False)
     filtered_connections = st.multiselect(options=unique_connections, key=unique_connections, label="Connections", placeholder="Filter for cases that follows a certain connection") #"Select the first activities in the process"
-
-# Graph details - duration or case count
-with graph_type_column:
-    graph_type = st.selectbox("Process graph type", ['Show duration and case count', 'Show duration only', 'Show case count only'], index=0)
-
-# Graph type - Top-botom or Left-right
-with rankdir_column:
-    rankdir = st.selectbox("Process graph flow direction", ['LR', 'TB'], index=0)
 
 filtered_df_updated = filtered_df.copy()
 # Activity filter, # First activity filter, # Last activity filter, # Variants filter, # Connections filter
@@ -111,19 +100,20 @@ no_of_cases = unique_count(filtered_df_updated,colCase)
 no_of_activities = unique_count(filtered_df_updated,colActivity)
 no_of_events = total_count(filtered_df_updated,colActivity)
 no_of_variants = unique_count(filtered_df_updated,'Variants')
-escalation_rate = filtered_df_updated[filtered_df_updated[colActivity]=='Require upgrade'][colCase].nunique()
-escalation_rate = (escalation_rate/no_of_cases)*100
-recurrence_rate = recurring_cases(filtered_df_updated,colCustomer, colProduct, colCase)
-fcr_rate = 100-recurrence_rate
-
+distinct_log = filtered_df_updated[filtered_df_updated['Event_ID'] == 1].reset_index(drop=True)
+total_net_value = distinct_log['NetValue'].sum()
+ontime_order_rate = (distinct_log[distinct_log['Delayed'] == 'IN TIME'][colCase].count()/distinct_log[colCase].count())*100
+rejected_orders = (distinct_log[distinct_log['Last_Activity'] == 'Schedule Line Rejected'][colCase].count()/distinct_log[colCase].count())*100
+order_type_pie_df = activity_occurrence(filtered_df_updated, colCase, 'OrderType')
+analysis_process_df = filtered_df_updated.groupby(['OrderType', colCustomer]).agg({colCase: ['nunique'], 'NetValue': ['sum']})
+analysis_process_df = analysis_process_df.sort_values(by=('NetValue', 'sum'), ascending=False).reset_index()
 start_act = start_and_end_activities(filtered_df_updated, colCase, colActivity, grouping='First_Activity',level='Start')
 end_act = start_and_end_activities(filtered_df_updated, colCase, colActivity, grouping='Last_Activity',level='End')
 pro_det = graph_group_timing(process_details_df, colCase, colTimestamp, colActivity)
 gra_coun = graph_count(filtered_df_updated, colActivity)
 
-
 with st.container(border=True):
-    cases_metric, activity_metric, event_metric, escalation_metric, fcr_metric, recurrence_metric, variant_metric = st.columns(7)
+    cases_metric, activity_metric, event_metric, net_value_metric, ontime_metric, rejected_order_metric, variant_metric = st.columns(7)
 
     # No. of closed cases
     with cases_metric:
@@ -145,24 +135,33 @@ with st.container(border=True):
         no_of_variants = format(no_of_variants, ",.0f")
         st.metric(label="Number of variants", value=no_of_variants)
 
-    with escalation_metric:
-        escalation_rate = "{:.2f}%".format(escalation_rate)
-        st.metric(label="Escalation rate", value=escalation_rate, help='The percent of cases that required upgrade')
+    with net_value_metric:
+        total_net_value = round(total_net_value/1000000,2)
+        total_net_value = format(total_net_value, ",.2f")
+        st.metric(label="Net Value of orders", value=f"${total_net_value}M")
 
-    with fcr_metric:
-        fcr_rate = "{:.2f}%".format(fcr_rate)
-        st.metric(label="FCR rate", value=fcr_rate, help='First Call Resolution Rate - The percent of cases that was resolved during the first interaction by a customer with a support team for a particular product')
+    with ontime_metric:
+        ontime_order_rate = "{:.2f}%".format(ontime_order_rate)
+        st.metric(label="On-time order rate", value=ontime_order_rate, help='The percent of orders that were delivered on time')
 
-    with recurrence_metric:
-        recurrence_rate = "{:.2f}%".format(recurrence_rate)
-        st.metric(label="Recurrence rate", value=recurrence_rate, help='Recurrence rate is the percent of cases that was not resolved after the first interaction with a support team')
+    with rejected_order_metric:
+        rejected_orders = "{:.2f}%".format(rejected_orders)
+        st.metric(label="Rejected order rate", value=rejected_orders, help='The percent of orders that were rejected')
 
 with st.container(border=True):
     process_graph_column, variant_column = st.columns([4,2])
 
     with process_graph_column:
         st.subheader(" :curly_loop: Process flow Graph")
-        # st.divider()
+        graph_type_column, rankdir_column = st.columns(2)
+        # Graph details - duration or case count
+        with graph_type_column:
+            graph_type = st.selectbox("Process graph type", ['Show duration and case count', 'Show duration only', 'Show case count only'], index=0)
+
+        # Graph type - Top-botom or Left-right
+        with rankdir_column:
+            rankdir = st.selectbox("Process graph flow direction", ['LR', 'TB'], index=0)
+
         if graph_type == 'Show duration and case count':
             process_flow_timing(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
         elif graph_type == 'Show case count only':
@@ -172,9 +171,7 @@ with st.container(border=True):
 
     with variant_column:
         st.subheader('Variants')
-        # st.divider()
         variant_tab = var_table_process_analysis(filtered_df_updated,'Variants',colCase)
-        # st.markdown('<span style="font-size: 16px; font-weight: bold;">Variants</span>', unsafe_allow_html=True)
         st.data_editor(
         variant_tab,
         column_config={
@@ -196,6 +193,20 @@ with st.container(border=True):
     st.subheader("Transition Matrix", help='This shows the transitions between various activities in the process. The rows are the starting point (source), the columns are the end point (target) and the numbers are the number of times a particular transition occurs')
     st.write(transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
+
+with st.container(border=True):
+    order_type_pie_col, analysis_process_col = st.columns(2)
+    with order_type_pie_col:
+        st.markdown('<span style="font-size: 16px; font-weight: bold;">Number of tickets by products</span>', unsafe_allow_html=True)
+        fig = px.pie(order_type_pie_df, values = "Percent", names = 'OrderType', template = "gridon")
+        fig.update_traces(text = order_type_pie_df["Number of Cases"], textposition = "inside")
+        st.plotly_chart(fig,use_container_width=True)
+
+    with analysis_process_col:
+        st.markdown('<span style="font-size: 16px; font-weight: bold;">Net value by product hierarchy and order type</span>', unsafe_allow_html=True)
+        st.data_editor(analysis_process_df, hide_index=True, use_container_width=True)
+
+
 with st.expander(':point_right: View Selected Cases'):
     case_ids_filtered = filtered_df_updated[colCase].unique()
     filtered_df_view = original_df[original_df[colCase].isin(case_ids_filtered)]
@@ -216,6 +227,12 @@ css='''
 [data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
     width: fit-content;
     margin: auto;
+}
+[data-testid="stMetricValue"] > div {
+    font-size: 1.5rem;
+}
+[data-testid="stCheckbox"] > p {
+    font-size: 13px;
 }
 '''
 st.markdown(f'<style>{css}</style>',unsafe_allow_html=True)

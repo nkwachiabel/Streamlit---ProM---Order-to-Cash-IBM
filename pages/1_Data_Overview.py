@@ -35,15 +35,17 @@ with date2:
 
 total_no_of_cases = unique_count(full_df,colCase)
 total_no_of_closed_cases = full_df[full_df['Status'] == 'Open'][colCase].nunique()
+total_no_of_events = total_count(full_df,colActivity)
 incorrect_start_cases = full_df[~full_df['First_Activity'].isin(first_activities) & full_df['Last_Activity'].isin(last_activities)][colCase].nunique()
 first_activities_table = activity_occurrence_count(full_df, colActivity, 'First_Activity')
 last_activities_table = activity_occurrence_count(full_df, colActivity, 'Last_Activity')
-
+distinct_log = filtered_df[filtered_df['Event_ID'] == 1].reset_index(drop=True)
 no_of_cases = unique_count(filtered_df,colCase)
 no_of_activities = unique_count(filtered_df,colActivity)
 no_of_events = total_count(filtered_df,colActivity)
 no_of_users = unique_count(filtered_df, colResources)
 no_of_products = unique_count(filtered_df, colProduct)
+total_net_value = distinct_log['NetValue'].sum()
 event_bar_df = event_graph_fn(filtered_df,colTimestamp,'Month/Year')
 cases_bar_df = cases_graph_fn(filtered_df,colTimestamp,'Month/Year')
 event_df = activity_occurrence(filtered_df, colCase, colActivity)
@@ -52,16 +54,15 @@ variants_sum = activities_trace(filtered_df, colCase, colActivity,colTimestamp)
 no_of_variants = unique_count(filtered_df,'Variants')
 var_table = var_table_process_analysis(filtered_df,'Variants',colCase)
 products_table = activity_occurrence(filtered_df, colCase, colProduct)
-
+order_type_table = distinct_log.groupby(by=['Product_hierarchy','OrderType'])['NetValue'].sum().sort_values(ascending=False).reset_index()
 event_per_case_df = event_per_case_analysis(filtered_df, colCase, colTimestamp,colActivity,event_id='Event_ID',case_length='Case_Length')
 closed_first_activities_table = activity_occurrence_count(filtered_df, colActivity, 'First_Activity')
 closed_last_activities_table = activity_occurrence_count(filtered_df, colActivity, 'Last_Activity')
 
 data_overview, open_close = st.tabs(['Data Overview', 'Open/closed cases'])
-
 with data_overview:
     with st.container(border=True):
-        cases_metric, activity_metric, event_metric, users_metric, product_metric, variant_metric = st.columns(6)
+        cases_metric, activity_metric, event_metric, users_metric, product_metric, net_value_metric, variant_metric = st.columns(7)
         
         # No. of closed cases
         with cases_metric:
@@ -88,13 +89,18 @@ with data_overview:
             # no_of_users = format(no_of_events, ",.0f")
             st.metric(label="Number of products", value=no_of_products)
 
+        with net_value_metric:
+            total_net_value = round(total_net_value/1000000,2)
+            total_net_value = format(total_net_value, ",.2f")
+            st.metric(label="Net Value of orders", value=f"${total_net_value}M")
+
         # No. of variants
         with variant_metric:
             no_of_variants = format(no_of_variants, ",.0f")
             st.metric(label="Number of variants", value=no_of_variants)
     
     with st.container(border=True):
-        visCasesGraph, colVariantTable = st.columns([4,2])
+        visCasesGraph, colVariantTable = st.columns([5,3])
         with visCasesGraph:
             st.markdown('<span style="font-size: 16px; font-weight: bold;">Count of cases per month by start date</span>', unsafe_allow_html=True)
             vertical_bar(cases_bar_df,'Month/Year','Count','',color_graph="rgba(49, 51, 60)")
@@ -118,7 +124,7 @@ with data_overview:
         )
     
     with st.container(border=True):
-        visEventsGraph, colActivityTable = st.columns([4,2])
+        visEventsGraph, colActivityTable = st.columns([5,3])
         with visEventsGraph:
             st.markdown('<span style="font-size: 16px; font-weight: bold;">Count of events per month</span>', unsafe_allow_html=True)
             vertical_bar(event_bar_df,'Month/Year','Count','',color_graph="rgba(49, 51, 60)")
@@ -142,30 +148,12 @@ with data_overview:
             )
 
     with st.container(border=True):
-        events_per_case_column, variants_column, activity_distribution_column  = st.columns([2, 2, 2])
-        
-        with events_per_case_column:
-            st.markdown('<span style="font-size: 16px; font-weight: bold;">Event per case</span>', unsafe_allow_html=True)
-            vertical_bar(event_per_case_df,'Case_Length','Percent','',color_graph="rgba(49, 51, 60)")
-        
+        variants_column, activity_distribution_column  = st.columns([3, 3])
+                
         # Activity distribution
         with activity_distribution_column:
-            st.markdown('<span style="font-size: 16px; font-weight: bold;">Number of tickets by customers</span>', unsafe_allow_html=True)
-            st.data_editor(
-                customer_df,
-                column_config={
-                    "Percent": st.column_config.ProgressColumn(
-                        "Percent",
-                        help="Percentage of Occurrence",
-                        format="%.2f %%",
-                        min_value=customer_df['Percent'].min(),
-                        max_value=customer_df['Percent'].max(),
-                    ),
-                },
-                hide_index=True,
-                use_container_width=True,
-                height=400
-            )
+            st.markdown('<span style="font-size: 16px; font-weight: bold;">Net value by product hierarchy and order type</span>', unsafe_allow_html=True)
+            st.data_editor(order_type_table, hide_index=True, use_container_width=True)
 
         # Activity distribution
         with variants_column:
@@ -174,11 +162,9 @@ with data_overview:
             fig.update_traces(text = products_table["Number of Cases"], textposition = "inside")
             st.plotly_chart(fig,use_container_width=True)
 
-       
-
 with open_close:
     with st.container(border=True):
-        total_cases, cases_metric_2, open_cases_2, wrong_start_activitty = st.columns(4)
+        total_cases, cases_metric_2, open_cases_2, wrong_start_activitty, total_events = st.columns(5)
         # total no. of cases
         with total_cases:
             total_no_of_cases = format(total_no_of_cases, ",.0f")
@@ -187,7 +173,6 @@ with open_close:
         # No. of closed cases
         with cases_metric_2:
             st.metric(label="Closed cases", value=no_of_cases)
-
 
         # No. of open cases
         with open_cases_2:
@@ -199,6 +184,9 @@ with open_close:
             incorrect_start_cases = format(incorrect_start_cases, ",.0f")
             st.metric(label="Incorrect start cases", value=incorrect_start_cases)
 
+        with total_events:
+            total_no_of_events = format(total_no_of_events, ",.0f")
+            st.metric(label="Total number of events", value=total_no_of_events)
     
     with st.container(border=True):
         first_activities_2, last_activities_3 = st.columns([2,2])
@@ -252,6 +240,9 @@ css='''
 [data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
     width: fit-content;
     margin: auto;
+}
+[data-testid="stMetricValue"] > div {
+    font-size: 1.5rem;
 }
 '''
 st.markdown(f'<style>{css}</style>',unsafe_allow_html=True)

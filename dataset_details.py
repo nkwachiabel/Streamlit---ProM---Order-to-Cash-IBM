@@ -8,19 +8,19 @@ from prom_functions import *
 #     df = pd.read_csv(path)
 #     return df
 
-dataset = 'https://raw.githubusercontent.com/nkwachiabel/Streamlit---ProM---Helpdesk-log/main/dataset/finale.csv'
+dataset = 'https://raw.githubusercontent.com/nkwachiabel/Streamlit---ProM---Order-to-Cash-IBM/main/dataset/o2c_crypted.csv'
 
 df = load_data(dataset)
 
-case_id = 'Case ID'
+case_id = 'Key'
 activity = 'Activity'
-timestamp = 'Complete Timestamp'
-resources = 'Resource'
-product = 'product'
-customer = 'customer'
-workgroup = 'workgroup'
-first_activities = ['Assign seriousness','Insert ticket']
-last_activities = ['Closed']
+timestamp = 'Date'
+resources = 'User'
+product = 'Product_hierarchy'
+customer = 'Customer'
+workgroup = 'Role'
+first_activities = ['Line Creation']
+last_activities = ['Good Issue','Schedule Line Rejected']
 
 def case_id_column():
     return case_id
@@ -78,11 +78,14 @@ filtered_df = df2.copy()
 filtered_df = filtered_df[filtered_df['First_Activity'].isin(first_activities) & filtered_df['Last_Activity'].isin(last_activities)]
 filtered_df = initial_dataset_filtered_df(filtered_df, case_id_column(), activity_column(), timestamp_column())
 
+@st.cache_data
 def full_dataset():
     return df
 
+@st.cache_data
 def full_dataset_edited():
     return df2
 
+@st.cache_data
 def filtered_dataset():
     return filtered_df

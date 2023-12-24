@@ -22,6 +22,35 @@ full_df = full_dataset_edited()
 st.title("Users Analysis")
 st.divider()
 
+unique_product_list = get_unique_items(filtered_df,colProduct)
+unique_product_list = sorted(unique_product_list, reverse=False)
+
+unique_ordertype_list = get_unique_items(filtered_df,'OrderType')
+unique_ordertype_list = sorted(unique_ordertype_list, reverse=False)
+
+unique_usertype_list = get_unique_items(filtered_df,'User_Type')
+
+# Product filter
+with st.sidebar:
+    product_list = st.multiselect(options=unique_product_list, label="Products", placeholder="Select product")
+
+with st.sidebar:
+    ordertype_list = st.multiselect(options=unique_ordertype_list, label="Order type", placeholder="Select order type")
+
+with st.sidebar:
+    usertype_list = st.multiselect(options=unique_usertype_list, label="User type", placeholder="Select user type")
+
+filtered_df = filtered_df.copy()
+
+if product_list:
+    filtered_df = filtered_df[filtered_df[colProduct].isin(product_list)]
+
+if ordertype_list:
+    filtered_df = filtered_df[filtered_df['OrderType'].isin(ordertype_list)]
+
+if usertype_list:
+    filtered_df = filtered_df[filtered_df['User_Type'].isin(usertype_list)]
+
 no_of_cases = unique_count(filtered_df,colCase)
 no_of_activities = unique_count(filtered_df,colActivity)
 no_of_events = total_count(filtered_df,colActivity)
@@ -31,7 +60,6 @@ workgroup_activities = activities_per_user(filtered_df,colWorkgroup,colActivity)
 user_process_df = process_details(filtered_df, colCase, colTimestamp, colResources)
 workgroup_process_df = process_details(filtered_df, colCase, colTimestamp, colWorkgroup)
 hand_over_workgroups = activities_per_user(workgroup_process_df,colWorkgroup,colWorkgroup+'_2')
-
 event_df = filtered_df.groupby(by=[colResources, colActivity])['Activity_Duration'].median().reset_index(name='Duration')
 event_df.sort_values(by='Duration', ascending=False, inplace=True)
 
@@ -71,7 +99,7 @@ with st.container(border=True):
         st.write(transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
     with med_dur_user_col:
-        st.subheader('Med. duration of activities per user')
+        st.subheader('Med. dur. of activities per user')
         st.data_editor(event_df, hide_index=True, use_container_width=True)
 
 with st.container(border=True):
@@ -87,11 +115,11 @@ with st.container(border=True):
         st.write(workgroup_transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
     with handover_col:
-        st.subheader('Handover of work between workgroups')
+        st.subheader('Handover of work between dept')
         workgroup_activity_graph(hand_over_workgroups)
 
 with st.container(border=True):
-    st.subheader('Segregation of duties between workgroups')
+    st.subheader('Segregation of duties between dept')
     user_activity_graph(workgroup_activities)
 
 css='''
@@ -108,6 +136,9 @@ css='''
 [data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
     width: fit-content;
     margin: auto;
+}
+[data-testid="stMetricValue"] > div {
+    font-size: 1.5rem;
 }
 '''
 st.markdown(f'<style>{css}</style>',unsafe_allow_html=True)
