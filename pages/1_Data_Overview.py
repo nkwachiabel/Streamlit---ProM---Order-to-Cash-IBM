@@ -152,12 +152,12 @@ with data_overview:
                 
         # Activity distribution
         with activity_distribution_column:
-            st.markdown('<span style="font-size: 16px; font-weight: bold;">Net value by product hierarchy and order type</span>', unsafe_allow_html=True)
+            st.markdown('<span style="font-size: 16px; font-weight: bold;">Net value of orders by product hierarchy and order type</span>', unsafe_allow_html=True)
             st.data_editor(order_type_table, hide_index=True, use_container_width=True)
 
         # Activity distribution
         with variants_column:
-            st.markdown('<span style="font-size: 16px; font-weight: bold;">Number of tickets by products</span>', unsafe_allow_html=True)
+            st.markdown('<span style="font-size: 16px; font-weight: bold;">Number of orders by products</span>', unsafe_allow_html=True)
             fig = px.pie(products_table, values = "Percent", names = colProduct, template = "gridon")
             fig.update_traces(text = products_table["Number of Cases"], textposition = "inside")
             st.plotly_chart(fig,use_container_width=True)
