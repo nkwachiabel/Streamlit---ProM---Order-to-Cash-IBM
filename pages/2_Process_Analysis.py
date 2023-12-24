@@ -20,7 +20,7 @@ st.title("Process Analysis")
 st.divider()
 
 # First row and column
-product_column, vartant_column, conn_column = st.columns([2,2,2])
+product_column, ordertype_column, vartant_column, conn_column = st.columns([2,2,2,2])
 
 # Get the unique variants list and unique connections list
 first_activity_list = get_unique_items(filtered_df, 'First_Activity')
@@ -29,6 +29,7 @@ unique_variant_list = get_unique_items(filtered_df,'Variants')
 process_details_df = process_details(filtered_df, colCase, colTimestamp, colActivity)
 unique_connections = get_unique_items(process_details_df,'Connection')
 unique_product_list = get_unique_items(filtered_df,colProduct)
+unique_ordertype_list = get_unique_items(filtered_df,'OrderType')
 
 # Filters
 # Activity filter
@@ -55,6 +56,11 @@ with product_column:
     unique_product_list = sorted(unique_product_list, reverse=False)
     product_list = st.multiselect(options=unique_product_list, label="Products", placeholder="Select product")
 
+# Product filter
+with ordertype_column:
+    unique_ordertype_list = sorted(unique_ordertype_list, reverse=False)
+    ordertype_list = st.multiselect(options=unique_ordertype_list, label="Products", placeholder="Select order type")
+
 # Variants filter
 with vartant_column:
     unique_variant_list = sorted(unique_variant_list, reverse=False)
@@ -72,6 +78,9 @@ if selected_activities:
 
 if product_list:
     filtered_df_updated = filtered_df_updated[filtered_df_updated[colProduct].isin(product_list)]
+
+if ordertype_list:
+    filtered_df_updated = filtered_df_updated[filtered_df_updated['OrderType'].isin(ordertype_list)]
 
 if selected_first_activities:
     filtered_df_updated = filtered_df_updated[filtered_df_updated['First_Activity'].isin(selected_first_activities)]
