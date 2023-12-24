@@ -105,7 +105,7 @@ with st.container(border=True):
         st.data_editor(order_type_count, hide_index=True, use_container_width=True)
 
 with st.container(border=True):
-    st.markdown('<span style="font-size: 16px; font-weight: bold;">Order drtails</span>', unsafe_allow_html=True)
+    st.markdown('<span style="font-size: 16px; font-weight: bold;">Order details</span>', unsafe_allow_html=True)
     selected_cases = distinct_log[[colCase, colProduct,colTimestamp,colCustomer,'Last_Activity']]
     st.data_editor(selected_cases, hide_index=True, use_container_width=True)
 
