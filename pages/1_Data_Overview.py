@@ -34,7 +34,7 @@ with date2:
     end_date = pd.to_datetime(end_date)
 
 total_no_of_cases = unique_count(full_df,colCase)
-total_no_of_closed_cases = full_df[full_df['Status'] == 'Open'][colCase].nunique()
+total_no_of_closed_cases = full_df[full_df['Case_Status'] == 'Open'][colCase].nunique()
 total_no_of_events = total_count(full_df,colActivity)
 incorrect_start_cases = full_df[~full_df['First_Activity'].isin(first_activities) & full_df['Last_Activity'].isin(last_activities)][colCase].nunique()
 first_activities_table = activity_occurrence_count(full_df, colActivity, 'First_Activity')

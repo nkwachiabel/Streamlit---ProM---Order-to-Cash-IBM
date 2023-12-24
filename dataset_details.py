@@ -70,7 +70,7 @@ def determine_status(row):
 # with st.expander(":point_right: Data View"):
 df2 = df.copy()
 df2 = initial_dataset_csv(df2, case_id_column(), activity_column(), timestamp_column())
-df2['Status'] = df2.apply(determine_status, axis=1)
+df2['Case_Status'] = df2.apply(determine_status, axis=1)
 # st.dataframe(df)
 
 # df2 = df2[(df2[timestamp_column()]>=start_date) & (df2[timestamp_column()]< end_date + pd.Timedelta(days=1))].copy()
