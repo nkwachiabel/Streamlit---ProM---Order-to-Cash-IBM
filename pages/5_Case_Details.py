@@ -67,6 +67,7 @@ with st.container(border=True):
 
 # with process_graph_column:
 with st.container(border=True):
+    st.subheader(" :curly_loop: Process flow Graph")
     _, _, graph_type_column, rankdir_column = st.columns(4)
 
     # # Graph details - duration or case count
@@ -77,7 +78,6 @@ with st.container(border=True):
     with rankdir_column:
         rankdir = st.selectbox("Process graph flow direction", ['LR', 'TB'], index=0)
 
-    st.subheader(" :curly_loop: Process flow Graph")
     if graph_type == 'Show duration and case count':
         process_flow_timing(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
     elif graph_type == 'Show case count only':
@@ -85,19 +85,25 @@ with st.container(border=True):
     else:
         process_flow_duration(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
 
-gantt_data_filtered = activity_chart_df.dropna(subset=['Start'])
+# gantt_data_filtered = activity_chart_df.dropna(subset=['Start'])
 with st.container(border=True):
     st.subheader(" :bar_chart: Activity gantt chart")
-    fig = px.timeline(gantt_data_filtered, x_start="Start", x_end="End", y=colActivity, color=colActivity)
+    fig = px.timeline(activity_chart_df, x_start="Start", x_end="End", y=colActivity, color=colActivity)
     fig.update_layout(
         height=300
     )
     st.plotly_chart(fig, use_container_width=True)
 
+with st.container(border=True):
+    st.data_editor(activity_chart_df)
+
 with st.expander(':point_right: View Selected Case'):
     case_ids_filtered = filtered_df_updated[colCase].unique()
     filtered_df_view = original_df[original_df[colCase].isin(case_ids_filtered)]
     st.dataframe(filtered_df_view, hide_index=True)
+
+
+# st.data_editor(activity_chart_df)
 
 css='''
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {

@@ -59,7 +59,7 @@ with product_column:
 # Product filter
 with ordertype_column:
     unique_ordertype_list = sorted(unique_ordertype_list, reverse=False)
-    ordertype_list = st.multiselect(options=unique_ordertype_list, label="Products", placeholder="Select order type")
+    ordertype_list = st.multiselect(options=unique_ordertype_list, label="Order type", placeholder="Select order type")
 
 # Variants filter
 with vartant_column:
@@ -202,25 +202,22 @@ with st.container(border=True):
     st.subheader("Transition Matrix", help='This shows the transitions between various activities in the process. The rows are the starting point (source), the columns are the end point (target) and the numbers are the number of times a particular transition occurs')
     st.write(transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
-
 with st.container(border=True):
     order_type_pie_col, analysis_process_col = st.columns(2)
     with order_type_pie_col:
-        st.markdown('<span style="font-size: 16px; font-weight: bold;">Number of tickets by products</span>', unsafe_allow_html=True)
+        st.markdown('<span style="font-size: 16px; font-weight: bold;">Number of orders by order type</span>', unsafe_allow_html=True)
         fig = px.pie(order_type_pie_df, values = "Percent", names = 'OrderType', template = "gridon")
         fig.update_traces(text = order_type_pie_df["Number of Cases"], textposition = "inside")
         st.plotly_chart(fig,use_container_width=True)
 
     with analysis_process_col:
-        st.markdown('<span style="font-size: 16px; font-weight: bold;">Net value by product hierarchy and order type</span>', unsafe_allow_html=True)
+        st.markdown('<span style="font-size: 16px; font-weight: bold;">Number and Value of orders by product hierarchy and customer</span>', unsafe_allow_html=True)
         st.data_editor(analysis_process_df, hide_index=True, use_container_width=True)
-
 
 with st.expander(':point_right: View Selected Cases'):
     case_ids_filtered = filtered_df_updated[colCase].unique()
     filtered_df_view = original_df[original_df[colCase].isin(case_ids_filtered)]
     st.dataframe(filtered_df_view, hide_index=True)
-
 
 css='''
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {

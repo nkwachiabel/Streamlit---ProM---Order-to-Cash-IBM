@@ -315,7 +315,9 @@ def activity_gant_chart(df,case_id,timestamp,activity):
     df_1 = df.copy()
     df_1 = df_1[[case_id, timestamp, activity]]
     df_1['Start'] = df_1[timestamp].shift(1)
+    # df_1['Start'].fillna(df_1['End'], inplace=True, limit=1)
     df_1.rename(columns={timestamp: 'End'}, inplace=True)
+    df_1['Start'].fillna(df_1['End'], inplace=True, limit=1)
     df_1 = df_1[[case_id, activity, 'Start', 'End']]
     return df_1
 

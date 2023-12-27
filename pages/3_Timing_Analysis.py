@@ -63,6 +63,7 @@ if calculation_metric == 'Median':
 else:
     product_hierarchy_timing = distinct_log.groupby([colProduct])['Case_Duration_days'].mean().reset_index()
 product_hierarchy_timing = product_hierarchy_timing.sort_values(by=['Case_Duration_days'], ascending=False)
+
 if calculation_metric == 'Median':
     order_type_timing = distinct_log.groupby(['OrderType'])['Case_Duration_days'].median().reset_index()
 else:
@@ -75,6 +76,18 @@ if calculation_metric == 'Median':
 else:
     sla_rate = case_dur[case_dur['Case_Duration_days'] > avg_dur][colCase].count()
     sla_rate = (sla_rate/no_of_cases)*100
+
+if calculation_metric == 'Median':
+    change_status_timing = distinct_log.groupby(['ID_Change_Status'])['Case_Duration_days'].median().reset_index()
+else:
+    change_status_timing = distinct_log.groupby(['ID_Change_Status'])['Case_Duration_days'].mean().reset_index()
+change_status_timing = change_status_timing.sort_values(by=['Case_Duration_days'], ascending=False)
+
+if calculation_metric == 'Median':
+    block_status_timing = distinct_log.groupby(['ID_Block_Status'])['Case_Duration_days'].median().reset_index()
+else:
+    block_status_timing = distinct_log.groupby(['ID_Block_Status'])['Case_Duration_days'].mean().reset_index()
+block_status_timing = block_status_timing.sort_values(by=['Case_Duration_days'], ascending=False)
 
 case_dur_df = case_dur.groupby(['Case_Duration_days'])[colCase].count().reset_index() # case duration graph
 process_details_df = process_details(filtered_df, colCase, colTimestamp, colActivity) # transtion matrix
@@ -170,6 +183,16 @@ with st.container(border=True):
     with product_hierar_col:
         st.subheader('Duration per product hierarchy')
         st.dataframe(product_hierarchy_timing, hide_index=True, use_container_width=True)
+
+with st.container(border=True):
+    change_status_col, block_status_col = st.columns(2)
+    with change_status_col:
+        st.subheader('Changes')
+        st.dataframe(change_status_timing, hide_index=True, use_container_width=True)
+
+    with block_status_col:
+        st.subheader('Blocked')
+        st.dataframe(block_status_timing, hide_index=True, use_container_width=True)
 
 css='''
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
