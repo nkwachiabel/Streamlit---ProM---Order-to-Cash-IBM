@@ -226,6 +226,10 @@ with open_close:
             height=400
         )
     
+with st.container(border=True):
+    st.subheader('Findings')
+
+
 css='''
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
     width: fit-content;

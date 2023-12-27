@@ -6,7 +6,7 @@ from dataset_details import *
 
 st.set_page_config(page_title="Process Mining O2C", page_icon=":bar_chart:", layout="wide")
 
-st.title("Process Mining: Analysing the helpdesk process log of an Italian company")
+st.title("Process Mining: Analysing the Order-to-Cash process of a cable company")
 st.divider()
 
 with st.container(border=True):
@@ -28,7 +28,7 @@ with st.container(border=True):
         st.markdown('<span style="font-size: 20px; font-weight: bold;">Methodology</span>', unsafe_allow_html=True)
         project_methodology = ''' 
         1. Data collection  
-        2. Data transformation  
+        2. Data quality check and transformation  
         3. Process discovery and analysis  
         4. Recommendations  
         '''
@@ -60,7 +60,7 @@ with st.container(border=True):
     **OrderType:** Indicates the categorization of the order.  
     **Delayed:** Denotes whether the order was delivered on time or experienced delays.  
     
-    This information forms the foundation for a comprehensive process mining analysis, enabling a deep dive into the order-to-cash process at IBM.        
+    This information forms the foundation for a comprehensive process mining analysis, enabling a deep dive into the order-to-cash process.        
     '''
     st.markdown(attributes_list1)
 
@@ -69,16 +69,20 @@ with st.container(border=True):
         st.markdown('<span style="font-size: 20px; font-weight: bold;">Dataset Credits</span>', unsafe_allow_html=True)
         credits_line = '''
             **Publisher:** IBM  
-            **Organisation:** University of Padova, Department of Mathematics  
-            **Reerences**: [IBM Process Mining GitHub repository](https://github.com/IBM/processmining)
+            **Organisation:** IBM  
+            **References**: [IBM Process Mining GitHub repository](https://github.com/IBM/processmining)
         '''
         st.markdown(credits_line)
         st.markdown('<span style="font-size: 20px; font-weight: bold;">GitHub Repository</span>', unsafe_allow_html=True)
         personal_details = '''
-            **[Github repository for Analysis](https://github.com/nkwachiabel/Process-Mining-Order-to-cash-IBM)**  
-            **Contribution:** Contributions to this repository are welcome! If you encounter any issues or have suggestions for improvement, please get in touch with me using the contact form below.  
+            **[Github repository for Analysis](https://github.com/nkwachiabel/Process-Mining-Order-to-cash-IBM)**    
         '''
         st.markdown(personal_details)
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Contributions</span>', unsafe_allow_html=True)
+        contribuions = '''  
+            Contributions to this projects are welcome! If you encounter any issues or have suggestions for improvement, please get in touch with me using the contact form.  
+        '''
+        st.markdown(contribuions)
     
     with col_eventlog2:
         st.markdown('<span style="font-size: 20px; font-weight: bold;">:mailbox: Get in touch with me!</span>', unsafe_allow_html=True)
@@ -96,7 +100,25 @@ with st.container(border=True):
 
 with st.container(border=True):
     st.subheader('Data quality check and transformation')
+    st.write('The event log was reviewed to ensure the data contained were suitable for process mining anslysis.')
+    col_ev_log, col_empty_values = st.columns(2)
 
+    with col_ev_log:
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Event Log Overview</span>', unsafe_allow_html=True)
+        st.write('The event log initially contained 15 different start activities and 14 different end activities, indicating a variety of entry and exit points in the process. The data captures all order requests from January 2, 2016, to December 7, 2017, without considering the stages the order requests were in the order to cash process.')
+
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Filtering for End-to-End Analysis</span>', unsafe_allow_html=True)
+        st.write('In order to understand the process, it is important to focus on completed orders. To focus on completed order requestes, the event log was filtered to include only those orders that started with "Line creation" and ended with either "Goods Issue" or "Schedule Line Rejected".')
+
+    with col_empty_values:
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Handling of Empty Values</span>', unsafe_allow_html=True)
+        st.write('Certain columns in the dataset had empty values. This is attributed to the nature of specific activities that do not require input in those columns. For instance, the "Delivery" and "Delivery_date" column has some empty rows. This was because the activity performed was not related to the delivery of goods. Columns with many empty rows were not utilized in the analysis, suggesting a focus on data completeness and relevance.')
+
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Limitations Due to Data Source</span>', unsafe_allow_html=True)
+        st.write('The event log was obtained online, and no direct contact was made with process owners for further understanding of the process or additional insights into the dataset. The analysis might not highlight manual events or specific nuances of the process due to the lack of direct engagement with process owners.')
+
+with st.container(border=True):
+    st.subheader('')
 
 
 with st.expander(":point_right: Data View"):
