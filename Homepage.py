@@ -45,6 +45,9 @@ with st.container(border=True):
         '''
         st.markdown(project_techused)
 
+with st.expander(":point_right: View Dataset"):
+    st.dataframe(df)
+
 with st.container(border=True):
     st.subheader('Data collection')
     
@@ -73,30 +76,13 @@ with st.container(border=True):
             **References**: [IBM Process Mining GitHub repository](https://github.com/IBM/processmining)
         '''
         st.markdown(credits_line)
+
+    with col_eventlog2:
         st.markdown('<span style="font-size: 20px; font-weight: bold;">GitHub Repository</span>', unsafe_allow_html=True)
         personal_details = '''
             **[Github repository for Analysis](https://github.com/nkwachiabel/Process-Mining-Order-to-cash-IBM)**    
         '''
         st.markdown(personal_details)
-        st.markdown('<span style="font-size: 20px; font-weight: bold;">Contributions</span>', unsafe_allow_html=True)
-        contribuions = '''  
-            Contributions to this projects are welcome! If you encounter any issues or have suggestions for improvement, please get in touch with me using the contact form.  
-        '''
-        st.markdown(contribuions)
-    
-    with col_eventlog2:
-        st.markdown('<span style="font-size: 20px; font-weight: bold;">:mailbox: Get in touch with me!</span>', unsafe_allow_html=True)
-        contact_form = """
-        <form action="https://formsubmit.co/3b046e55c482e13b27281f351ab6b27e" method="POST">
-            <input type="hidden" name="_captcha" value="false">
-            <input type="text" name="Name" placeholder="Your name" required>
-            <input type="email" name="Email" placeholder="Your email" required>
-            <textarea name="message" placeholder="Message"></textarea>
-            <button type="submit">Send</button>
-        </form>
-        """
-        st.markdown(contact_form, unsafe_allow_html=True)
-
 
 with st.container(border=True):
     st.subheader('Data quality check and transformation')
@@ -118,11 +104,41 @@ with st.container(border=True):
         st.write('The event log was obtained online, and no direct contact was made with process owners for further understanding of the process or additional insights into the dataset. The analysis might not highlight manual events or specific nuances of the process due to the lack of direct engagement with process owners.')
 
 with st.container(border=True):
-    st.subheader('')
+    st.subheader('Process discovery and analysis & Recommendations')
+    process_discov = '''
+    See the following pages for the findings on process discovery and analysis:  
+    1. Process Analysis - Findings on the organisation perspective  
+    2. Timing Analysis - Findings on the timing perspective  
+    3. Users Analysis - Findings on users involved in the process  
+    4. Case Details - A dashboard for users to be able to filter individual orders  
+    5. Open Orders - A dashboard to view and monitor open order requests  
+    6. Recommedations - A list of recommendations for process owners based on the findings above
+    '''
+    st.markdown(process_discov, unsafe_allow_html=True)
 
 
-with st.expander(":point_right: Data View"):
-    st.dataframe(df)
+
+with st.container(border=True):
+    st.markdown('<span style="font-size: 20px; font-weight: bold;">Contributions</span>', unsafe_allow_html=True)
+    contribuions = '''  
+            Contributions to this projects are welcome! If you encounter any issues or have suggestions for improvement, please get in touch with me using the contact form.  
+        '''
+    st.markdown(contribuions)
+    
+    st.markdown('<span style="font-size: 20px; font-weight: bold;">:mailbox: Get in touch with me!</span>', unsafe_allow_html=True)
+    contact_form = """
+        <form action="https://formsubmit.co/3b046e55c482e13b27281f351ab6b27e" method="POST">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="text" name="Name" placeholder="Your name" required>
+            <input type="email" name="Email" placeholder="Your email" required>
+            <textarea name="message" placeholder="Message"></textarea>
+            <button type="submit">Send</button>
+        </form>
+        """
+    st.markdown(contact_form, unsafe_allow_html=True)
+
+
+
 
 css = '''
 input[type=text], input[type=email], textarea {
