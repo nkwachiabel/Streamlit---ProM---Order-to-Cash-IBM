@@ -30,6 +30,9 @@ unique_ordertype_list = sorted(unique_ordertype_list, reverse=False)
 
 unique_usertype_list = get_unique_items(filtered_df,'User_Type')
 
+process_details_df = process_details(filtered_df, colCase, colTimestamp, colActivity)
+unique_connections = get_unique_items(process_details_df,'Connection')
+
 # Product filter
 with st.sidebar:
     product_list = st.multiselect(options=unique_product_list, label="Products", placeholder="Select product")
@@ -39,6 +42,10 @@ with st.sidebar:
 
 with st.sidebar:
     usertype_list = st.multiselect(options=unique_usertype_list, label="User type", placeholder="Select user type")
+
+with st.sidebar:
+    unique_connections = sorted(unique_connections, reverse=False)
+    filtered_connections = st.multiselect(options=unique_connections, key=unique_connections, label="Connections", placeholder="Filter for cases that follows a certain connection") #"Select the first activities in the process"
 
 filtered_df = filtered_df.copy()
 
@@ -50,6 +57,18 @@ if ordertype_list:
 
 if usertype_list:
     filtered_df = filtered_df[filtered_df['User_Type'].isin(usertype_list)]
+
+if filtered_connections:
+    filtered_b = process_details_df[process_details_df['Connection'].isin(filtered_connections)]
+    case_ids = filtered_b[colCase].unique()
+    filtered_df = filtered_df[filtered_df[colCase].isin(case_ids)]
+
+# Update process details DataFrame based on filtered cases
+if not filtered_df.empty:
+    process_details_df = process_details(filtered_df, colCase, colTimestamp, colActivity)
+else:
+    process_details_df = process_details_df
+
 
 no_of_cases = unique_count(filtered_df,colCase)
 no_of_activities = unique_count(filtered_df,colActivity)
@@ -121,6 +140,62 @@ with st.container(border=True):
 with st.container(border=True):
     st.subheader('Segregation of duties between dept')
     user_activity_graph(workgroup_activities)
+
+
+with st.container(border=True):
+    st.subheader('Findings')
+    st.markdown('<span style="font-size: 20px; font-weight: bold;">Overview</span>', unsafe_allow_html=True)
+    st.write('A total of 69 users are analyzed, differentiated as Humans or System automatic jobs (Robots). Roles are distinct per user, with no user holding multiple roles, implying a clear delineation of responsibilities within the system.')
+
+    robot_findings = '''
+        7 robot users (User17, User60-65) are identified, mostly handling automated tasks like Delivery and Goods Issue.
+        User60 and User61 are the most active robot users, suggesting a significant reliance on automation for these processes.
+
+    '''
+    human_findings = '''
+        Human users perform a wider array of activities, with User9, a human, notably engaging in more activities than the robots, which may highlight an imbalance in workload distribution.
+        The role of Customer Service Representative is the most staffed, indicating a high touchpoint with customers in the process.
+
+    '''
+    activity_specific_findings = '''
+        "Schedule Line Rejected" is solely performed by User56, whose user type is not recorded, leaving ambiguity regarding human or robot execution.
+
+    '''
+    segregation_findings = '''
+        The transition matrix exhibits instances of users handing over work to themselves, which could pose a risk for fraudulent activities and calls into question the effectiveness of segregation of duties.
+
+    '''
+    detailed_product_findings = '''
+        **TLC Connectivity**: Comprises 2 robots and 7 human users across 2 roles: Customer Service Representative and Logistic Operator. Logistic Operator's sole activity is "Header Block Removed," while Customer Service Representatives perform all other activities except for those automated by robots. User20, a Customer Service Representative, appears to undertake the majority of the tasks, which might indicate an overload or inefficiency in task distribution.  
+
+        **TLC Optical Cables**: With 6 robot users and 61 humans, activities such as Delivery and Goods Issue are largely automated. Humans are involved in more nuanced tasks, with User43 handling a significant volume of Delivery and Goods Issue activities.  
+
+        **TLC Optical Fibres**: Characterized by a high level of automation with 6 robots and 7 humans. The roles are diverse, including a Corporate Credit Manager and Customer Service Representatives, among others. User9 emerges as a key human actor, undertaking the bulk of activities, with delivery and header block activities as notable bottlenecks.  
+
+        **TLC Optical Ground Cables**: A mix of 2 robots and 16 humans, with a wider array of roles, including Design Engineers and Master Scheduler. This product line shows better segregation of duties, with User6 being a primary actor in non-automated activities.  
+
+    '''
+
+    findings_col1, findings_col2 = st.columns(2)
+    with findings_col1:
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Robot Users</span>', unsafe_allow_html=True)
+        st.markdown(robot_findings, unsafe_allow_html=True)
+
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Human Users</span>', unsafe_allow_html=True)
+        st.markdown(human_findings, unsafe_allow_html=True)
+
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Activity-Specific Observations</span>', unsafe_allow_html=True)
+        st.markdown(activity_specific_findings, unsafe_allow_html=True)
+
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Segregation of Duties and Fraud Risk</span>', unsafe_allow_html=True)
+        st.markdown(segregation_findings, unsafe_allow_html=True)
+
+    with findings_col2:
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Detailed Product Hierarchy Analysis</span>', unsafe_allow_html=True)
+        st.markdown(detailed_product_findings, unsafe_allow_html=True)
+
+
+
 
 css='''
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {

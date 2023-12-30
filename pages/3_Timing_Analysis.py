@@ -18,6 +18,9 @@ filtered_df = filtered_dataset()
 original_df = full_dataset()
 full_df = full_dataset_edited()
 
+first_activity_list = get_unique_items(filtered_df, 'First_Activity')
+last_activity_list = get_unique_items(filtered_df, 'Last_Activity')
+
 unique_product_list = get_unique_items(filtered_df,colProduct)
 unique_product_list = sorted(unique_product_list, reverse=False)
 
@@ -38,6 +41,13 @@ with st.sidebar:
 with st.sidebar:
     ordertype_list = st.multiselect(options=unique_ordertype_list, label="Order type", placeholder="Select order type")
 
+with st.sidebar:
+    selected_first_activities = st.multiselect(options=first_activity_list, label="First activities", placeholder="Select activity")
+
+# Last activity filter
+with st.sidebar:
+    selected_last_activities = st.multiselect(options=last_activity_list, label="Last activities", placeholder="Select activity")
+
 filtered_df = filtered_df.copy()
 
 if product_list:
@@ -45,6 +55,12 @@ if product_list:
 
 if ordertype_list:
     filtered_df = filtered_df[filtered_df['OrderType'].isin(ordertype_list)]
+
+if selected_first_activities:
+    filtered_df = filtered_df[filtered_df['First_Activity'].isin(selected_first_activities)]
+
+if selected_last_activities:
+    filtered_df = filtered_df[filtered_df['Last_Activity'].isin(selected_last_activities)]
 
 # calculations
 no_of_cases = unique_count(filtered_df,colCase) # no of cases
@@ -102,6 +118,12 @@ if calculation_metric == 'Median':
 else:
     activity_duration = filtered_df.groupby([colActivity])['Activity_Duration'].mean().round(0).reset_index()
 activity_duration = activity_duration.sort_values(by=['Activity_Duration'], ascending=False)
+
+if calculation_metric == 'Median':
+    connection_duration = process_details_df.groupby(by='Connection')['Duration'].median().round(0).reset_index()
+else:
+    connection_duration = process_details_df.groupby(by='Connection')['Duration'].mean().round(0).reset_index()
+connection_duration = connection_duration.sort_values(by=['Duration'], ascending=False)
 
 with st.container(border=True):
     # layout
@@ -164,8 +186,8 @@ with st.container(border=True):
     case_duration_column, activities_duration_column = st.columns(2)
     # case duration column
     with case_duration_column:
-        st.subheader('Duration of each case')
-        st.dataframe(case_duration_dataframe, hide_index=True, use_container_width=True)
+        st.subheader('Duration of each connection')
+        st.dataframe(connection_duration, hide_index=True, use_container_width=True)
 
     with activities_duration_column:
         if calculation_metric == 'Median':
@@ -193,6 +215,57 @@ with st.container(border=True):
     with block_status_col:
         st.subheader('Blocked')
         st.dataframe(block_status_timing, hide_index=True, use_container_width=True)
+
+with st.container(border=True):
+    st.subheader('Findings')
+    st.write('This detailed analysis is aimed at identifying time-related bottlenecks in the order-to-cash process, focused on completed orders, utilizing the median duration as a more robust measure against outliers than the average.  ')
+    duration_findings = '''
+        The aggregate median duration for completing an order across 21,159 cases is 48 days. This timeframe is dissected into two segments: rejected cases, with a swift median duration of 3 days, suggesting rapid decision-making in rejection scenarios; and non-rejected cases, with a median duration of 55 days, indicating a longer commitment to fulfilling orders.
+    '''
+    product_hierarchy_findings = '''
+        **TLC Optical Ground Cables:** The notably lengthy median duration of 166 days could imply a complex production or delivery process, possibly due to the product's specifications or supply chain challenges.  
+        **TLC Connectivity:** At 81 days median duration, and with all orders completed on time, this category might benefit from a streamlined process or less complex order requirements.  
+        **TLC Optical Cables and Fibres:** Median durations of 60 and 44 days, respectively, suggest varying degrees of process efficiency, possibly influenced by factors like product demand, production complexity, or logistical considerations.
+
+    '''
+    order_type_findings = '''
+        The extended duration for US-Consignm.Fill-Up (147 days) and US-Std. I/C Order (117.5 days) might be indicative of specific challenges or inefficiencies inherent to these order types, warranting a deeper investigation into their respective processes.
+
+    '''
+    changes_findings = '''
+        The stark contrast in median durations between orders with (70 days) and without (45 days) delivery date changes underscores the significant impact of such modifications. This aspect suggests a need for rigorous schedule adherence and predictive planning to mitigate delays.
+
+    '''
+    blocks_findings = '''
+        The zero-day median duration for orders without blocks contrasts sharply with the 57-day median for blocked orders. This disparity calls for a proactive approach in block management, particularly in addressing frequent causes like address inaccuracies or credit issues, which can severely impede the order timeline.
+
+    '''
+    activity_findings = '''
+        The Delivery activity and Address Missing Block are identified as major time-consuming steps. Streamlining the delivery process and ensuring accurate customer data upfront can substantially reduce these delays.
+        The transitions with the longest durations reveal critical junctures where process improvement can significantly impact overall efficiency, especially in logistics and credit management areas. Addressing these areas could dramatically enhance the overall speed and efficiency of the order-to-cash process.
+
+    '''
+    findings_col1, findings_col2 = st.columns(2)
+
+    with findings_col1:
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Overall Process Duration</span>', unsafe_allow_html=True)
+        st.markdown(duration_findings, unsafe_allow_html=True)
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Product Hierarchy Insights</span>', unsafe_allow_html=True)
+        st.markdown(product_hierarchy_findings, unsafe_allow_html=True)
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Order Type Variations</span>', unsafe_allow_html=True)
+        st.markdown(order_type_findings, unsafe_allow_html=True)
+
+    with findings_col2:
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Delivery Date Changes</span>', unsafe_allow_html=True)
+        st.markdown(changes_findings, unsafe_allow_html=True)
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Blocks and Their Impacts</span>', unsafe_allow_html=True)
+        st.markdown(blocks_findings, unsafe_allow_html=True)
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Activity-Specific Delays</span>', unsafe_allow_html=True)
+        st.markdown(activity_findings, unsafe_allow_html=True)
+
+
+
+
 
 css='''
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {

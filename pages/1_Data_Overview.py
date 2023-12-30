@@ -228,6 +228,86 @@ with open_close:
     
 with st.container(border=True):
     st.subheader('Findings')
+    st.write('The Data Overview tab shows the completed cases alone, while the Open/Closed cases tab shows the details of all cases in the eventlog', unsafe_allow_html=True)
+    st.markdown('<span style="font-size: 20px; font-weight: bold;">Data Overview tab</span>', unsafe_allow_html=True)
+    findings_col1, findings_col2 = st.columns(2)
+    with findings_col1:
+        data_summary = '''
+            After the data quality check and transformation, the eventlog comprises 21,159 cases, encompassing 17 different activities and 110,125 events.
+            There are 69 users involved in the process, interacting with 4 different products.
+            The total net value of the orders is approximately $241.83 million, and there are 800 distinct process variants identified.  
+        '''
+        number_of_orders_by_products = '''
+            **Number of Orders by Products:**
+            The pie chart shows the number of orders divided among different product categories.
+            TLC Optical Cables constitute the majority with 57.9% of orders.
+            TLC Optical Fibres account for 41.5% of the total orders.
+            TLC Connectivity and TLC Optical Ground Cables represent a much smaller portion of orders, with 0.4% and 0.23% of the orders respectively.  
+        '''
+        net_value_of_orders = '''
+            **Net Value of Orders by Product Hierarchy and Order Type:**
+            The table provides a detailed breakdown of the net value of orders, grouped by product hierarchy and order type.
+            TLC Optical Cables with US-Std. Order type have the highest net value at over USD133 million. 
+            TLC Optical Fibres with US-IC Order Fiber type follow, with a net value of approximately USD74 million. 
+            Other significant net values are associated with TLC Optical Fibres with US-Internal Transfer and US-Std. Order Fiber types, and TLC Optical Cables with US-Std. IV/C Order and US-Return Order types.
+            Asides the US-Consignm.Fill-Up and US-Free of charge, the least net value is associated with TLC Optical Fibres with order type US-Return Order and ZUH2.
+            TLC Optical Ground Cables and TLC Connectivity are at the lower end of the net value spectrum compared to the other categories.  
+        '''
+        st.markdown(data_summary, unsafe_allow_html=True)
+        st.markdown(number_of_orders_by_products, unsafe_allow_html=True)
+        st.markdown(net_value_of_orders, unsafe_allow_html=True)
+
+    with findings_col2:
+        cases_and_events_over_time = '''
+            **Cases and Events Over Time:** The "Count of cases per month by start date" bar chart shows a high number of cases starting in January 2016 (2,284 cases), with a general declining trend over time, notably with a significant decrease starting from July 2017.
+            The "Count of events per month" bar chart displays a consistent number of events per month without drastic changes over time until July 2017, similar to the number of cases.  
+        '''
+        process_variants_findings = '''
+            **Process Variants:** The "Variants" table illustrates the distribution of cases across different process variants.
+              Variant 1 is the most common, accounting for 29.51% of cases, followed by Variant 2 with 22.30%, and so forth.
+                The top 5 variants accounts for approximately 60% of these cases.  
+        '''
+        activity_distribution_findings = '''
+            **Activity Distribution:**
+            The "Activity Distribution" table shows that every case includes the "Line Creation" activity (100% occurrence). This is due to the fact that the line creation activity is the first activity in the process.
+            The next most frequent activity is "LgstCheckOnConfDat Removed" with over 92% occurrence,
+            "Delivery" and "Good Issue" are common activities, both with over 82% occurrence among the cases.
+            "Header Block Removed" activity occurs in approximately 50.89% of cases.
+            Less frequent activities include "Schedule Line Rejected" at 11.76%, "Document released for credit" at 7.43%, "LgstCheckOnConfDat Set" at 2.18% etc.  
+        '''
+        st.markdown(cases_and_events_over_time, unsafe_allow_html=True)
+        st.markdown(process_variants_findings, unsafe_allow_html=True)
+        st.markdown(activity_distribution_findings, unsafe_allow_html=True)
+
+    st.markdown('<span style="font-size: 20px; font-weight: bold;">Open/closed cases tab</span>', unsafe_allow_html=True)
+    summary2 = '''
+        From the eventlog, the first activity is "Line Creation", while the last activity can either be "Goods Issue" or "Schedule Line Rejected" (for orders that were rejected).  
+        **Closed cases** - These are cases that start with "Line Creation" and ends with either "Goods Issue" or "Schedule Line Rejected". There were 21,159 cases that falls into this category. Our analysis is focused on these completed cases.  
+        **Open cases** - These are cases which starts with "Line Creation" but does not end with either "Goods Issue" or "Schedule Line Rejected".  There were 8,908 open cases and a dashboard has been created to analyse and monitor these cases.  
+        **Wrong start activity** - These are cases which ends with either "Goods Issue" or "Schedule Line Rejected", but do not start with "Line Creation". 5,464 cases fell into this category and were not considered in the analysis. This can be due to the way the eventlog was extracted.  
+        **Other cases** - There were 10,294 cases which did not start with "Line Creation" and did not also end with either "Goods Issue" or "Schedule Line Rejected". It was assumed that these cases were included irrespective of the stages there were when the eventlog was extracted and were not considered in the analysis.  
+    '''
+    st.markdown(summary2, unsafe_allow_html=True)
+    first_activities_findings = '''
+        **First Activities:**
+        The most common first activity for cases is "Line Creation," making up 65.61% of the cases.
+        "Delivery" is the next most frequent starting activity, accounting for 15.47%.
+        Other activities such as "Header Block Removed" and "LgstCheckOnConfDat Removed" are less common, with 6.23% and 5.90% respectively.
+        Less frequent initial activities include "Sched.Line Changed Delivery Date," "Good Issue," and "Document released for credit."  
+    '''
+    last_activities_findings = '''
+        **Last Activities:**
+        The most frequent last activity is "Good Issue," which concludes 52.43% of cases.
+        "LgstCheckOnConfDat Removed" is the final activity in 16.23% of cases.
+        "Line Creation" and "Delivery" also appear as the last activities in 10.16% and 7.54% of cases, respectively.
+        Activities like "Schedule Line Rejected" and "Header Block Removed" are the final steps in a smaller portion of cases.
+    '''
+    findings_col3, findings_col4 = st.columns(2)
+    with findings_col3:
+        st.markdown(first_activities_findings, unsafe_allow_html=True)
+
+    with findings_col4:
+        st.markdown(last_activities_findings, unsafe_allow_html=True)
 
 
 css='''

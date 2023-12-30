@@ -107,6 +107,7 @@ filtered_df_updated = filtered_df_updated.sort_values(by=[colCase, colTimestamp]
 
 no_of_cases = unique_count(filtered_df_updated,colCase)
 no_of_activities = unique_count(filtered_df_updated,colActivity)
+no_of_customers = unique_count(filtered_df_updated, colCustomer)
 no_of_events = total_count(filtered_df_updated,colActivity)
 no_of_variants = unique_count(filtered_df_updated,'Variants')
 distinct_log = filtered_df_updated[filtered_df_updated['Event_ID'] == 1].reset_index(drop=True)
@@ -122,7 +123,7 @@ pro_det = graph_group_timing(process_details_df, colCase, colTimestamp, colActiv
 gra_coun = graph_count(filtered_df_updated, colActivity)
 
 with st.container(border=True):
-    cases_metric, activity_metric, event_metric, net_value_metric, ontime_metric, rejected_order_metric, variant_metric = st.columns(7)
+    cases_metric, activity_metric, event_metric, net_value_metric, customer_metric, ontime_metric, rejected_order_metric, variant_metric = st.columns(8)
 
     # No. of closed cases
     with cases_metric:
@@ -143,6 +144,10 @@ with st.container(border=True):
     with variant_metric:
         no_of_variants = format(no_of_variants, ",.0f")
         st.metric(label="Number of variants", value=no_of_variants)
+
+    with customer_metric:
+        no_of_customers = format(no_of_customers, ",.0f")
+        st.metric(label="Number of customers", value=no_of_customers)
 
     with net_value_metric:
         total_net_value = round(total_net_value/1000000,2)
@@ -218,6 +223,64 @@ with st.expander(':point_right: View Selected Cases'):
     case_ids_filtered = filtered_df_updated[colCase].unique()
     filtered_df_view = original_df[original_df[colCase].isin(case_ids_filtered)]
     st.dataframe(filtered_df_view, hide_index=True)
+
+
+with st.container(border=True):
+    st.subheader('Findings')
+    variant_findings = '''        
+        The variant analysis begins by identifying the sequence of activities that each order request follows. These sequences are then grouped into process variants. The analysis, broken down by product hierarchy, reveals the following:  
+
+        **TLC Optical Cables:** This category encompasses 12,250 orders from 215 customers, resulting in 726 variants. The most common variant, Variant 2, occurred in 4,718 cases (38.51% of the orders) and follows this sequence: Line Creation -> Header Block Removed -> LgstCheckOnConfDat Removed -> Delivery -> Goods Issue.
+
+        **TLC Optical Fibres:** With 8,775 orders from 35 customers, this category has 68 variants. The predominant variant, Variant 1, was seen in 6,240 cases (71% of the orders), following the sequence: Line Creation -> LgstCheckOnConfDat Removed -> Delivery -> Goods Issue. Notably, the 'Address Missing' activities are not evident in this product category.
+
+        **TLC Optical Ground Cables:** Consisting of 49 orders from 8 customers, there are 15 variants identified. The most occurring variant, Variant 34, appeared in 11 cases. The top three variants, accounting for 55.1% of the orders, are primarily associated with rejected cases. Variant 134, which represents the highest variant with completed cases, follows the sequence: Line Creation -> Header Block Removed -> Address Missing Block Set -> LgstCheckOnConfDat Set -> Sched. Line Block Removed -> Address Missing Block Removed -> LgstCheckOnConfDat Removed -> Delivery -> Goods Issue.
+
+        **TLC Connectivity:** This category, with 85 orders from 6 customers, has 17 variants. The most occurring variants are Variant 7 and Variant 16, together accounting for 72.94% of the cases. Variant 7, in particular, is associated with Customer 1, following this sequence: Line Creation -> Sched. Line Changed Delivery Date -> Header Block Removed -> Delivery -> Goods Issue.
+    '''
+    rejected_order_findings = '''
+        Of the total 21,159 orders, 2,488 were rejected by 115 customers, amounting to $62.67M. These rejections represent about 12% of the total orders in the period covered by the event log. The specific reasons for these rejections are not detailed in the log. However, the analysis indicates that the 'Schedule Line Rejected' activity often occurs immediately after 'LgstCheckOnConfDat Removed'. The breakdown of rejections by product hierarchy is as follows:
+
+        **TLC Optical Cables:** 10.82% (1,326 orders)  
+        **TLC Optical Fibres:** 12.92% (1,134 orders)  
+        **TLC Optical Ground Cables:** 57.14% (49 orders)  
+        The data suggests that these rejections might be due to product unavailability rather than customer decisions.  
+    '''
+    repeated_activities_findings = '''
+        There were some repeated activities in the order to cash process. The highest repeated activities are Good Issue and Delivery. It is important that Good Issue activity are followed by the Delivery activity, however, it is also important to consider the cost of logistics of delivering an order multiple times. The next activity with a high count of repetitions is Sched. Line Changed Delivery Date. This is due to multiple changes to the delivery dates and this may lead to delayed orders.
+    '''
+    process_analysis_findings = '''
+        The Order-to-Cash process typically commences with the "Line Creation" activity and concludes with either "Goods Issue" or "Scheduled Line Rejected". There are 17 distinct activities involved in this process, which are listed in the sidebar of the screen. The activity "Sched. Line Changed Delivery Date" occurs when there is an alteration to the delivery date of an order; however, it is unclear whether these changes stem from the buyer's requests or from deficiencies in the company's material planning.
+
+        The process incorporates several block activities to halt further processing of the order document until specific conditions are met or verifications are completed. These blocks include Header Block, CTR Block, Sched. Line Block, Special Test Block, Credit Block, and LgstCheckOnConfDat.
+
+        The Header Block applies to the entire sales document and precludes further processing of any items within the order. It is typically implemented while awaiting credit verifications, customer confirmations, or other necessary validations. Ideally, the Header Block should be removed before proceeding with any subsequent activities. However, there were instances where the "Delivery" activity was executed 12 times despite the presence of a Header Block. In one case, goods were issued even though a Header Block was in effect.
+
+        The CTR Block, likely a control-related measure, is used for orders that necessitate special control actions or regulatory compliance checks.
+
+        The Sched. Line Block is applied to individual schedule lines within a sales order, potentially due to issues with the delivery date, product availability, or specific line item reviews. It bars the creation of delivery for the affected schedule line. This block is consistently followed by the "Sched. Line Block Removed" activity and has occurred only twice.
+
+        A Special Test Block is initiated when an item mandates additional testing or quality assurance measures. It remains until the order's special requirements are satisfied. This block occurred in two instances, leading to order rejection.
+
+        A Credit Block is invoked when a customer exceeds their credit limit or when there are payment reliability concerns. This block halts the order's processing until the credit-related issues are resolved. Nonetheless, there were three instances where orders were credit-blocked, but the goods were still issued—all pertaining to Customer 206 and totaling £436,670.5. The order was blocked for credit by User33, but Good Issue activity was performed by User66
+
+        Address missing block is applied if the shipping or billing address information is incomplete or missing in the sales order. Accurate address information is critical for correct delivery and invoicing, co the block prevents further processing until the address data is provided and verified. Despite this, there were 3 instances where Goods Issue activity occured immediately Address missing block set. This amounted to $2.5m from 3 customers. Customer 33, 48 and 197.
+
+        Lastly, the LgstCheckOnConfDat (Logistics Check on Confirmation Date) block is likely employed for verifying logistics details before order confirmation. This includes checks on delivery dates, shipping methods, or warehouse capacities. This block is promptly removed following the "Line Creation" and "Header Block Removed" activities.
+
+    '''
+    findings_col1, findings_col2 = st.columns(2)
+    with findings_col1:
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Process Analysis</span>', unsafe_allow_html=True)
+        st.markdown(process_analysis_findings, unsafe_allow_html=True)
+
+    with findings_col2:
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Variant Analysis</span>', unsafe_allow_html=True)
+        st.markdown(variant_findings, unsafe_allow_html=True)
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Repeated activities</span>', unsafe_allow_html=True)
+        st.markdown(repeated_activities_findings, unsafe_allow_html=True)
+        st.markdown('<span style="font-size: 20px; font-weight: bold;">Rejected Orders</span>', unsafe_allow_html=True)
+        st.markdown(rejected_order_findings, unsafe_allow_html=True)
 
 css='''
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {

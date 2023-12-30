@@ -19,6 +19,7 @@ original_df = full_dataset()
 full_df = full_dataset_edited()
 
 st.title("Case Details")
+st.write('This page shows information relating to a particular case by using the filter at the sidebar to select a case.')
 st.divider()
 
 unique_case_id = get_unique_items(filtered_df,colCase)

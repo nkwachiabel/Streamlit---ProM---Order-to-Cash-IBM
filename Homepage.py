@@ -104,7 +104,7 @@ with st.container(border=True):
         st.write('The event log was obtained online, and no direct contact was made with process owners for further understanding of the process or additional insights into the dataset. The analysis might not highlight manual events or specific nuances of the process due to the lack of direct engagement with process owners.')
 
 with st.container(border=True):
-    st.subheader('Process discovery and analysis & Recommendations')
+    st.subheader('Process discovery and analysis')
     process_discov = '''
     See the following pages for the findings on process discovery and analysis:  
     1. Process Analysis - Findings on the organisation perspective  
@@ -112,10 +112,42 @@ with st.container(border=True):
     3. Users Analysis - Findings on users involved in the process  
     4. Case Details - A dashboard for users to be able to filter individual orders  
     5. Open Orders - A dashboard to view and monitor open order requests  
-    6. Recommedations - A list of recommendations for process owners based on the findings above
     '''
     st.markdown(process_discov, unsafe_allow_html=True)
 
+with st.container(border=True):
+    st.subheader('Recommendations')
+    recommendations = '''
+        **Addressing Bottlenecks:**  
+        **Customer Address Updates:** Implement a proactive system to regularly verify and update customer address information. This could involve automated reminders to customers to confirm or update their addresses periodically or when placing an order.  
+        **Inventory Planning:** Enhance inventory management systems to accurately forecast demand and ensure timely replenishment. Utilize predictive analytics to identify trends and optimize inventory levels.  
+
+        **Improving System Controls:**  
+        **Prevent Incorrect Goods Issuance:** Establish stricter validation checks within the system to ensure goods are not issued under incorrect conditions. This could involve multi-level verification processes and automated alerts for irregularities.  
+
+        **Analyzing Rejection Rates:**  
+        **Identify Causes of High Rejection:** Conduct a detailed analysis of orders in categories with high rejection rates to understand underlying causes. This might involve reviewing process steps, quality control measures, and customer feedback.  
+        **Implement Corrective Actions:** Based on the analysis, take corrective measures such as process re-engineering, quality improvement initiatives, product modifications, or customer communication enhancements.  
+        **Root Cause Analysis:** Delve into the specific reasons for order rejections, using data analytics and feedback from relevant departments.  
+
+        **Optimizing User Role Distribution and Workload:**  
+        **Role Analysis and Distribution:** Conduct a thorough review of user roles and responsibilities to ensure a balanced distribution of workload. Consider reallocating tasks or hiring additional staff where necessary.  
+        **Efficiency Training:** Provide training and resources to enhance the efficiency of existing staff, especially in roles with a high volume of activities.  
+
+        **Investigating Automatic Activities:**  
+        **Impact Assessment:** Study the impact of automatic activities on the process flow, particularly those related to delivery and goods issuance. Assess whether these activities align with the intended process outcomes.  
+        **Process Calibration:** Adjust the settings of automatic activities to better align with process requirements and reduce instances of error or inefficiency.        
+
+        **Open orders**  
+        To manage these open orders effectively, the implementation of Microsoft Power Automate for setting up periodic reminders is recommended. These reminders could be directed to the last user who performed an activity on the order or to the head of procurement, ensuring that the status of each order is regularly reviewed and followed up on. This automation could be scheduled on a fortnightly basis to maintain consistent oversight of open orders and to expedite their resolution.  
+
+        **Continuous Monitoring and Benchmarking:**  
+        **Regular Process Review:** Establish a routine for monitoring process performance, focusing on the timeliness and efficiency of order fulfillment.
+        **Benchmarking Against Standards:** Compare your process performance against industry standards or benchmarks to identify gaps and opportunities for improvement.  
+        **Iterative Improvement:** Utilize findings from regular monitoring and benchmarking to implement continuous improvement initiatives, aiming for higher efficiency and customer satisfaction.  
+
+    '''
+    st.markdown(recommendations, unsafe_allow_html=True)
 
 
 with st.container(border=True):
