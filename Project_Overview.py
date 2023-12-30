@@ -4,7 +4,7 @@ from prom_functions import *
 from visuals_prom import *
 from dataset_details import *
 
-st.set_page_config(page_title="Process Mining O2C", page_icon=":bar_chart:", layout="wide")
+st.set_page_config(page_title="Process Mining Order-to-Cash", page_icon=":twisted_rightwards_arrows:", layout="wide")
 
 st.title("Process Mining: Analysing the Order-to-Cash process of a cable company")
 st.divider()
