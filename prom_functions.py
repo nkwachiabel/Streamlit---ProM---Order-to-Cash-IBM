@@ -6,7 +6,7 @@ months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augus
 
 @st.cache_data
 def load_data(path: str):
-    df = pd.read_csv(path, thousands='.', decimal=',')
+    df = pd.read_csv(path, thousands='.', decimal=',', low_memory=False)
     return df
 
 def initial_dataset_prep(df, case_column, activity_column, timestamp_column):
