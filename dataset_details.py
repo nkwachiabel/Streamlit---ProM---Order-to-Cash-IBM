@@ -57,6 +57,10 @@ df = datetime_format(df, timestamp_column())
 start_time = earliest_time(df,timestamp_column())
 end_time = latest_time(df,timestamp_column())
 
+@st.cache_data
+def full_dataset():
+    return df
+
 def determine_status(row):
     if row['First_Activity'] in first_activities:
         if row['Last_Activity'] in last_activities:
@@ -80,9 +84,7 @@ filtered_df = df2.copy()
 filtered_df = filtered_df[filtered_df['First_Activity'].isin(first_activities) & filtered_df['Last_Activity'].isin(last_activities)]
 filtered_df = initial_dataset_filtered_df(filtered_df, case_id_column(), activity_column(), timestamp_column())
 
-@st.cache_data
-def full_dataset():
-    return df
+
 
 @st.cache_data
 def full_dataset_edited():

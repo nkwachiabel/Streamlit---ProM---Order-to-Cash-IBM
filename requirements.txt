@@ -1,7 +1,7 @@
 streamlit==1.29.0
-pandas==1.4.1
+pandas==2.1.4
 plotly==5.18.0
-numpy==1.22.2
-graphviz==0.19.1
+numpy==1.26.3
+graphviz==0.20.1
 streamlit-agraph==0.0.45
-matplotlib==3.5.1
+matplotlib==3.8.2
