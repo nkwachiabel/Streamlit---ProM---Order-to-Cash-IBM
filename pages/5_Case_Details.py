@@ -66,6 +66,9 @@ with st.container(border=True):
     with variant_metric:
         st.metric(label="Variants", value=variant_metric_detail)
 
+st.data_editor(gra_coun)
+st.data_editor(pro_det)
+
 # with process_graph_column:
 with st.container(border=True):
     st.subheader(" :curly_loop: Process flow Graph")

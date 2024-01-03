@@ -2,6 +2,19 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import graphviz
+from dataset_details import *
+
+colCase = case_id_column()
+colActivity = activity_column()
+colTimestamp = timestamp_column()
+colResources = resources_col()
+colProduct = product_col()
+first_activities = first_activity()
+last_activities = last_activity()
+colCustomer = customer_col()
+filtered_df = filtered_dataset()
+original_df = full_dataset()
+full_df = full_dataset_edited()
 
 def plot_metric(label, value, prefix="", suffix="", show_graph=False, color_graph=""):
     fig = go.Figure()
@@ -102,7 +115,7 @@ def vertical_bar(df, x_col,y_col,label,color_graph=""):
         )
         st.plotly_chart(fig, use_container_width=True)
 
-def process_flow(start_activity_df, end_activity_df,process_details_df,graph_count_df,start='Start',end='End',activity='Activity',f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
+def process_flow(start_activity_df, end_activity_df,process_details_df,graph_count_df,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
     g = graphviz.Digraph(engine='dot') # format='png'
     g.attr('node', shape='rectangle', height='0',width='0', fontname="Segoe UI Semibold", fontcolor="#023047", fontsize='10')
     g.attr('edge', arrowhead='vee', arrowtail='inv', fontname="Segoe UI Semibold", fontcolor="#023047",fontsize='10')
@@ -137,7 +150,7 @@ def process_flow(start_activity_df, end_activity_df,process_details_df,graph_cou
 
     st.graphviz_chart(g, use_container_width=True)
 
-def process_flow_timing(start_activity_df, end_activity_df,process_details_df,graph_count_df,start='Start',end='End',activity='Activity',f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
+def process_flow_timing(start_activity_df, end_activity_df,process_details_df,graph_count_df,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
     g = graphviz.Digraph() # format='png'
     g.attr('node', shape='rectangle', height='0',width='0', nodesep='1.5',  fontname="Segoe UI Semibold", fontcolor="#023047", fontsize='10')
     g.attr('edge', arrowhead='vee', arrowtail='inv', fontname="Segoe UI Semibold", fontcolor="#023047",fontsize='10')
@@ -172,7 +185,7 @@ def process_flow_timing(start_activity_df, end_activity_df,process_details_df,gr
 
     st.graphviz_chart(g, use_container_width=True)
 
-def process_flow_duration(start_activity_df, end_activity_df,process_details_df,graph_count_df,start='Start',end='End',activity='Activity',f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
+def process_flow_duration(start_activity_df, end_activity_df,process_details_df,graph_count_df,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
     g = graphviz.Digraph() # format='png'
     g.attr('node', shape='rectangle', height='0',width='0', fontname="Segoe UI Semibold", fontcolor="#023047", fontsize='10')
     g.attr('edge', arrowhead='vee', arrowtail='inv', fontname="Segoe UI Semibold", fontcolor="#023047",fontsize='10')

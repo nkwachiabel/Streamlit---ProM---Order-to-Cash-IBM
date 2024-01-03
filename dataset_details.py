@@ -9,8 +9,10 @@ from prom_functions import *
 #     return df
 
 dataset = 'https://raw.githubusercontent.com/nkwachiabel/Streamlit---ProM---Order-to-Cash-IBM/main/dataset/o2c_crypted.csv'
+parquet_datadet = 'https://github.com/nkwachiabel/Streamlit---ProM---Order-to-Cash-IBM/raw/main/dataset/df.parquet.gzip'
 
-df = load_data(dataset)
+# df = load_data(parquet_datadet)
+df = load_parquet(parquet_datadet)
 
 case_id = 'Key'
 activity = 'Activity'
@@ -71,7 +73,7 @@ def determine_status(row):
 df2 = df.copy()
 df2 = initial_dataset_csv(df2, case_id_column(), activity_column(), timestamp_column())
 df2['Case_Status'] = df2.apply(determine_status, axis=1)
-# st.dataframe(df)
+
 
 # df2 = df2[(df2[timestamp_column()]>=start_date) & (df2[timestamp_column()]< end_date + pd.Timedelta(days=1))].copy()
 filtered_df = df2.copy()

@@ -9,6 +9,13 @@ def load_data(path: str):
     df = pd.read_csv(path, thousands='.', decimal=',', low_memory=False)
     return df
 
+# def load_sql(path: str):
+#     df = pd.read_sql()
+
+def load_parquet(path: str):
+    df = pd.read_parquet(path)
+    return df
+
 def initial_dataset_prep(df, case_column, activity_column, timestamp_column):
     df[timestamp_column] = pd.to_datetime(df[timestamp_column])
     df['Year'] = df[timestamp_column].dt.year
@@ -33,8 +40,8 @@ def initial_dataset_prep(df, case_column, activity_column, timestamp_column):
     df = pd.merge(df, variants_sum, right_on=case_column, left_on=case_column)
     return df
 
-def datetime_format(df, col_name):
-    df[col_name] = pd.to_datetime(df[col_name])
+def datetime_format(df, col_name): #, format='%d/%m/%Y %H:%M:%S'
+    df[col_name] = pd.to_datetime(df[col_name], format="%d/%m/%Y %H:%M:%S") #, format=format
     return df
 
 def earliest_time(df,col_name):
@@ -241,7 +248,7 @@ def graph_group_timing(df,case_id, timestamp,activities):
 
 def graph_count(df, activities):
     graph_count = df.copy()
-    graph_count = graph_count[activities].value_counts().to_frame().reset_index().rename(columns={'index':activities, activities:'Count'})
+    graph_count = graph_count[activities].value_counts().to_frame().reset_index().rename(columns={'count':'Count'})
     return graph_count
 
 def case_duration(df, case_id, dates):
