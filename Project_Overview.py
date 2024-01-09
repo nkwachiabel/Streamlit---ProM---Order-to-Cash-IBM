@@ -1,8 +1,4 @@
 import streamlit as st
-import pandas as pd
-from prom_functions import *
-from visuals_prom import *
-from dataset_details import *
 
 st.set_page_config(page_title="Process Mining Order-to-Cash", page_icon=":twisted_rightwards_arrows:", layout="wide")
 
@@ -45,9 +41,6 @@ with st.container(border=True):
         '''
         st.markdown(project_techused)
 
-with st.expander(":point_right: View Dataset"):
-    st.dataframe(df)
-
 with st.container(border=True):
     st.subheader('Data collection')
     
@@ -77,12 +70,12 @@ with st.container(border=True):
         '''
         st.markdown(credits_line)
 
-    with col_eventlog2:
-        st.markdown('<span style="font-size: 20px; font-weight: bold;">GitHub Repository</span>', unsafe_allow_html=True)
-        personal_details = '''
-            **[Github repository for Analysis](https://github.com/nkwachiabel/Process-Mining-Order-to-cash-IBM)**    
-        '''
-        st.markdown(personal_details)
+    # with col_eventlog2:
+    #     st.markdown('<span style="font-size: 20px; font-weight: bold;">GitHub Repository</span>', unsafe_allow_html=True)
+    #     personal_details = '''
+    #         **[Github repository for Analysis](https://github.com/nkwachiabel/Process-Mining-Order-to-cash-IBM)**    
+    #     '''
+    #     st.markdown(personal_details)
 
 with st.container(border=True):
     st.subheader('Data quality check and transformation')
@@ -91,10 +84,10 @@ with st.container(border=True):
 
     with col_ev_log:
         st.markdown('<span style="font-size: 20px; font-weight: bold;">Event Log Overview</span>', unsafe_allow_html=True)
-        st.write('The event log initially contained 15 different start activities and 14 different end activities, indicating a variety of entry and exit points in the process. The data captures all order requests from January 2, 2016, to December 7, 2017, without considering the stages the order requests were in the order to cash process.')
+        st.write('The event log initially contained 15 different start activities and 14 different end activities, indicating a variety of entry and exit points in the process. The data captures all order requests from January 2, 2016, to July 16, 2017, without considering the stages the order requests were in the order to cash process.')
 
         st.markdown('<span style="font-size: 20px; font-weight: bold;">Filtering for End-to-End Analysis</span>', unsafe_allow_html=True)
-        st.write('In order to understand the process, it is important to focus on completed orders. To focus on completed order requestes, the event log was filtered to include only those orders that started with "Line creation" and ended with either "Goods Issue" or "Schedule Line Rejected".')
+        st.write('In order to understand the process completely, it is important to focus on completed orders. To focus on completed order requests, the event log was filtered to include only those orders that started with "Line creation" and ended with either "Goods Issue" or "Schedule Line Rejected". These two activities were selected to gain proper understanding of those cases that were rejected and those that were completed. This would help in understanding the reasons for rejection and also improve understanding of the overall process')
 
     with col_empty_values:
         st.markdown('<span style="font-size: 20px; font-weight: bold;">Handling of Empty Values</span>', unsafe_allow_html=True)
@@ -149,7 +142,6 @@ with st.container(border=True):
     '''
     st.markdown(recommendations, unsafe_allow_html=True)
 
-
 with st.container(border=True):
     st.markdown('<span style="font-size: 20px; font-weight: bold;">Contributions</span>', unsafe_allow_html=True)
     contribuions = '''  
@@ -168,9 +160,6 @@ with st.container(border=True):
         </form>
         """
     st.markdown(contact_form, unsafe_allow_html=True)
-
-
-
 
 css = '''
 input[type=text], input[type=email], textarea {

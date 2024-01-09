@@ -1,26 +1,55 @@
 import streamlit as st
-import pandas as pd
+# import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
-from prom_functions import *
+# import plotly.graph_objects as go
+from prom_functions import get_unique_items,process_details,unique_count,total_count,activities_per_user
 from visuals_prom import *
-from dataset_details import *
+from dataset_details import filtered_dataset,full_dataset,full_dataset_edited
 
-colCase = case_id_column()
-colActivity = activity_column()
-colTimestamp = timestamp_column()
-colResources = resources_col()
-colProduct = product_col()
-colWorkgroup = workgroup_col()
-first_activities = first_activity()
-last_activities = last_activity()
-colCustomer = customer_col()
+
+colCase = 'Key'
+colActivity = 'Activity'
+colTimestamp = 'Date'
+colResources = 'User'
+colProduct = 'Product_hierarchy'
+colCustomer = 'Customer'
+colWorkgroup = 'Role'
+first_activities = ['Line Creation']
+last_activities = ['Good Issue','Schedule Line Rejected']
 filtered_df = filtered_dataset()
 original_df = full_dataset()
 full_df = full_dataset_edited()
 
 st.title("Users Analysis")
 st.divider()
+
+metric_css='''
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
+    width: fit-content;
+    margin: auto;
+}
+
+[data-testid="stMetricValue"] > div, [data-testid="stMetricLabel"] > div {
+    width: fit-content;
+    margin: auto;
+}
+
+[data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
+    width: fit-content;
+    margin: auto;
+}
+[data-testid="stMetricValue"] > div {
+    font-size: 1.5rem;
+}
+[data-testid="stMarkdownContainer"] > h3 {
+    font-size: calc(1 rem + .6vw);
+}
+[data-testid="stCheckbox"] > p {
+    font-size: 13px;
+}
+'''
+st.markdown(f'<style>{metric_css}</style>',unsafe_allow_html=True)
+
 
 unique_product_list = get_unique_items(filtered_df,colProduct)
 unique_product_list = sorted(unique_product_list, reverse=False)
@@ -79,8 +108,10 @@ workgroup_activities = activities_per_user(filtered_df,colWorkgroup,colActivity)
 user_process_df = process_details(filtered_df, colCase, colTimestamp, colResources)
 workgroup_process_df = process_details(filtered_df, colCase, colTimestamp, colWorkgroup)
 hand_over_workgroups = activities_per_user(workgroup_process_df,colWorkgroup,colWorkgroup+'_2')
-event_df = filtered_df.groupby(by=[colResources, colActivity])['Activity_Duration'].median().reset_index(name='Duration')
+event_df = filtered_df.groupby(by=[colResources, colActivity], observed=True)['Activity_Duration'].median().reset_index(name='Duration')
 event_df.sort_values(by='Duration', ascending=False, inplace=True)
+user_activity_count = filtered_df.pivot_table(index='User',columns='Activity',aggfunc='size', observed=True).fillna(0)#.reset_index()
+
 
 with st.container(border=True):
     # layout
@@ -107,18 +138,20 @@ with st.container(border=True):
 
 with st.container(border=True):
     st.subheader('Activities by users')
-    fig1 = px.bar(users_activities.sort_values(by=[colResources], ascending=True), x=colResources, y='Weight', color=colActivity)
+    users_activities[colActivity] = users_activities[colActivity].astype(str)
+    fig1 = px.bar(users_activities.sort_values(by=[colResources], ascending=True), x=colResources, y='Count', color=colActivity)
     st.plotly_chart(fig1, use_container_width=True)
+    st.write(user_activity_count.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
 with st.container(border=True):
     user_trans_matrix_col, med_dur_user_col = st.columns([4,2])
     with user_trans_matrix_col:
-        transition_matrix_df = user_process_df.pivot_table(index=colResources, columns=colResources+'_2', values=colCase, aggfunc='count').fillna(0)
+        transition_matrix_df = user_process_df.pivot_table(index=colResources, columns=colResources+'_2', values=colCase, aggfunc='count',observed=True).fillna(0)
         st.subheader("Transition matrix between users", help='This shows the transitions between various users in the process. The rows are the starting user (source), the columns are the end user (target) and the numbers are the number of times a particular transition occurs')
         st.write(transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
     with med_dur_user_col:
-        st.subheader('Med. dur. of activities per user')
+        st.subheader('Activities per user')
         st.data_editor(event_df, hide_index=True, use_container_width=True)
 
 with st.container(border=True):
@@ -129,7 +162,7 @@ with st.container(border=True):
     trans_matrix_col, handover_col = st.columns(2)
     
     with trans_matrix_col:
-        workgroup_transition_matrix_df = workgroup_process_df.pivot_table(index=colWorkgroup, columns=colWorkgroup+'_2', values=colCase, aggfunc='count').fillna(0)
+        workgroup_transition_matrix_df = workgroup_process_df.pivot_table(index=colWorkgroup, columns=colWorkgroup+'_2', values=colCase, aggfunc='count', observed=True).fillna(0)
         st.subheader("Transition matrix between workgroups")
         st.write(workgroup_transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
@@ -193,27 +226,3 @@ with st.container(border=True):
     with findings_col2:
         st.markdown('<span style="font-size: 20px; font-weight: bold;">Detailed Product Hierarchy Analysis</span>', unsafe_allow_html=True)
         st.markdown(detailed_product_findings, unsafe_allow_html=True)
-
-
-
-
-css='''
-[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
-    width: fit-content;
-    margin: auto;
-}
-
-[data-testid="stMetricValue"] > div, [data-testid="stMetricLabel"] > div {
-    width: fit-content;
-    margin: auto;
-}
-
-[data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
-    width: fit-content;
-    margin: auto;
-}
-[data-testid="stMetricValue"] > div {
-    font-size: 1.5rem;
-}
-'''
-st.markdown(f'<style>{css}</style>',unsafe_allow_html=True)

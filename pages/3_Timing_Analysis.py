@@ -1,19 +1,18 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from prom_functions import *
+from prom_functions import get_unique_items, unique_count, case_duration, process_details, case_duration_df
 from visuals_prom import *
-from dataset_details import *
+from dataset_details import filtered_dataset, full_dataset, full_dataset_edited
 
-colCase = case_id_column()
-colActivity = activity_column()
-colTimestamp = timestamp_column()
-colResources = resources_col()
-colProduct = product_col()
-first_activities = first_activity()
-last_activities = last_activity()
-colCustomer = customer_col()
+colCase = 'Key'
+colActivity = 'Activity'
+colTimestamp = 'Date'
+colResources = 'User'
+colProduct = 'Product_hierarchy'
+colCustomer = 'Customer'
+workgroup = 'Role'
+first_activities = ['Line Creation']
+last_activities = ['Good Issue','Schedule Line Rejected']
 filtered_df = filtered_dataset()
 original_df = full_dataset()
 full_df = full_dataset_edited()
@@ -29,6 +28,30 @@ unique_ordertype_list = sorted(unique_ordertype_list, reverse=False)
 
 st.title("Timing Analysis")
 st.divider()
+
+metric_css='''
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
+    width: fit-content;
+    margin: auto;
+}
+
+[data-testid="stMetricValue"] > div, [data-testid="stMetricLabel"] > div {
+    width: fit-content;
+    margin: auto;
+}
+
+[data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
+    width: fit-content;
+    margin: auto;
+}
+[data-testid="stMetricValue"] > div {
+    font-size: 1.5rem;
+}
+[data-testid="stCheckbox"] > p {
+    font-size: 13px;
+}
+'''
+st.markdown(f'<style>{metric_css}</style>',unsafe_allow_html=True)
 
 with st.sidebar:
     st.markdown('<span style="font-size: 16px; font-weight: bold;">Select calculation metric</span>', unsafe_allow_html=True)
@@ -75,15 +98,15 @@ distinct_log = filtered_df[filtered_df['Event_ID'] == 1].reset_index(drop=True)
 distinct_log = pd.merge(distinct_log, case_dur, right_on=colCase, left_on=colCase)
 
 if calculation_metric == 'Median':
-    product_hierarchy_timing = distinct_log.groupby([colProduct])['Case_Duration_days'].median().reset_index()
+    product_hierarchy_timing = distinct_log.groupby([colProduct], observed=True)['Case_Duration_days'].median().reset_index()
 else:
-    product_hierarchy_timing = distinct_log.groupby([colProduct])['Case_Duration_days'].mean().reset_index()
+    product_hierarchy_timing = distinct_log.groupby([colProduct], observed=True)['Case_Duration_days'].mean().reset_index()
 product_hierarchy_timing = product_hierarchy_timing.sort_values(by=['Case_Duration_days'], ascending=False)
 
 if calculation_metric == 'Median':
-    order_type_timing = distinct_log.groupby(['OrderType'])['Case_Duration_days'].median().reset_index()
+    order_type_timing = distinct_log.groupby(['OrderType'], observed=True)['Case_Duration_days'].median().reset_index()
 else:
-    order_type_timing = distinct_log.groupby(['OrderType'])['Case_Duration_days'].mean().reset_index()
+    order_type_timing = distinct_log.groupby(['OrderType'], observed=True)['Case_Duration_days'].mean().reset_index()
 order_type_timing = order_type_timing.sort_values(by=['Case_Duration_days'], ascending=False)
 
 if calculation_metric == 'Median':
@@ -94,35 +117,35 @@ else:
     sla_rate = (sla_rate/no_of_cases)*100
 
 if calculation_metric == 'Median':
-    change_status_timing = distinct_log.groupby(['ID_Change_Status'])['Case_Duration_days'].median().reset_index()
+    change_status_timing = distinct_log.groupby(['ID_Change_Status'], observed=True)['Case_Duration_days'].median().reset_index()
 else:
-    change_status_timing = distinct_log.groupby(['ID_Change_Status'])['Case_Duration_days'].mean().reset_index()
+    change_status_timing = distinct_log.groupby(['ID_Change_Status'], observed=True)['Case_Duration_days'].mean().reset_index()
 change_status_timing = change_status_timing.sort_values(by=['Case_Duration_days'], ascending=False)
 
 if calculation_metric == 'Median':
-    block_status_timing = distinct_log.groupby(['ID_Block_Status'])['Case_Duration_days'].median().reset_index()
+    block_status_timing = distinct_log.groupby(['ID_Block_Status'], observed=True)['Case_Duration_days'].median().reset_index()
 else:
-    block_status_timing = distinct_log.groupby(['ID_Block_Status'])['Case_Duration_days'].mean().reset_index()
+    block_status_timing = distinct_log.groupby(['ID_Block_Status'], observed=True)['Case_Duration_days'].mean().reset_index()
 block_status_timing = block_status_timing.sort_values(by=['Case_Duration_days'], ascending=False)
 
 case_dur_df = case_dur.groupby(['Case_Duration_days'])[colCase].count().reset_index() # case duration graph
 process_details_df = process_details(filtered_df, colCase, colTimestamp, colActivity) # transtion matrix
 process_details_df['Duration'] = (process_details_df[colTimestamp+'_2'] - process_details_df[colTimestamp]).dt.days
 if calculation_metric == 'Median':
-    transition_matrix_df = process_details_df.pivot_table(index=colActivity, columns=colActivity+'_2', values='Duration', aggfunc='median').fillna(0)
+    transition_matrix_df = process_details_df.pivot_table(index=colActivity, columns=colActivity+'_2', values='Duration', aggfunc='median', observed=True).fillna(0)
 else:
-    transition_matrix_df = process_details_df.pivot_table(index=colActivity, columns=colActivity+'_2', values='Duration', aggfunc='mean').fillna(0)
+    transition_matrix_df = process_details_df.pivot_table(index=colActivity, columns=colActivity+'_2', values='Duration', aggfunc='mean', observed=True).fillna(0)
 case_duration_dataframe = case_duration_df(filtered_df, colCase, colTimestamp, event_id = 'Event_ID') # start date, end date and duration
 if calculation_metric == 'Median':
-    activity_duration = filtered_df.groupby([colActivity])['Activity_Duration'].median().round(0).reset_index()
+    activity_duration = filtered_df.groupby([colActivity], observed=True)['Activity_Duration'].median().round(0).reset_index()
 else:
-    activity_duration = filtered_df.groupby([colActivity])['Activity_Duration'].mean().round(0).reset_index()
+    activity_duration = filtered_df.groupby([colActivity], observed=True)['Activity_Duration'].mean().round(0).reset_index()
 activity_duration = activity_duration.sort_values(by=['Activity_Duration'], ascending=False)
 
 if calculation_metric == 'Median':
-    connection_duration = process_details_df.groupby(by='Connection')['Duration'].median().round(0).reset_index()
+    connection_duration = process_details_df.groupby(by='Connection', observed=True)['Duration'].median().round(0).reset_index()
 else:
-    connection_duration = process_details_df.groupby(by='Connection')['Duration'].mean().round(0).reset_index()
+    connection_duration = process_details_df.groupby(by='Connection', observed=True)['Duration'].mean().round(0).reset_index()
 connection_duration = connection_duration.sort_values(by=['Duration'], ascending=False)
 
 with st.container(border=True):
@@ -237,7 +260,7 @@ with st.container(border=True):
 
     '''
     blocks_findings = '''
-        The zero-day median duration for orders without blocks contrasts sharply with the 57-day median for blocked orders. This disparity calls for a proactive approach in block management, particularly in addressing frequent causes like address inaccuracies or credit issues, which can severely impede the order timeline.
+        The zero-day median duration for orders without blocks contrasts sharply with the 26-day median for blocked orders. This disparity calls for a proactive approach in block management, particularly in addressing frequent causes like address inaccuracies or credit issues, which can severely impede the order timeline.
 
     '''
     activity_findings = '''
@@ -262,28 +285,3 @@ with st.container(border=True):
         st.markdown(blocks_findings, unsafe_allow_html=True)
         st.markdown('<span style="font-size: 20px; font-weight: bold;">Activity-Specific Delays</span>', unsafe_allow_html=True)
         st.markdown(activity_findings, unsafe_allow_html=True)
-
-
-
-
-
-css='''
-[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
-    width: fit-content;
-    margin: auto;
-}
-
-[data-testid="stMetricValue"] > div, [data-testid="stMetricLabel"] > div {
-    width: fit-content;
-    margin: auto;
-}
-
-[data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
-    width: fit-content;
-    margin: auto;
-}
-[data-testid="stMetricValue"] > div {
-    font-size: 1.5rem;
-}
-'''
-st.markdown(f'<style>{css}</style>',unsafe_allow_html=True)

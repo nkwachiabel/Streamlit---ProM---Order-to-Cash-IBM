@@ -1,15 +1,20 @@
 import streamlit as st
-import pandas as pd
-from prom_functions import *
-from visuals_prom import *
-from dataset_details import *
+# import pandas as pd
+import plotly.express as px
+from prom_functions import get_unique_items,unique_count,activity_occurrence,cases_graph_fn
+from visuals_prom import vertical_bar
+from dataset_details import filtered_dataset,full_dataset,full_dataset_edited
 
-colCase = case_id_column()
-colActivity = activity_column()
-colTimestamp = timestamp_column()
-colResources = resources_col()
-colProduct = product_col()
-colCustomer = customer_col()
+
+colCase = 'Key'
+colActivity = 'Activity'
+colTimestamp = 'Date'
+colResources = 'User'
+colProduct = 'Product_hierarchy'
+colCustomer = 'Customer'
+colWorkgroup = 'Role'
+first_activities = ['Line Creation']
+last_activities = ['Good Issue','Schedule Line Rejected']
 filtered_df = filtered_dataset()
 original_df = full_dataset()
 full_df = full_dataset_edited()
@@ -17,6 +22,29 @@ full_df = full_dataset_edited()
 st.title("Open Orders")
 st.divider()
 
+metric_css='''
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
+    width: fit-content;
+    margin: auto;
+}
+
+[data-testid="stMetricValue"] > div, [data-testid="stMetricLabel"] > div {
+    width: fit-content;
+    margin: auto;
+}
+
+[data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
+    width: fit-content;
+    margin: auto;
+}
+[data-testid="stMetricValue"] > div {
+    font-size: 1.5rem;
+}
+[data-testid="stCheckbox"] > p {
+    font-size: 13px;
+}
+'''
+st.markdown(f'<style>{metric_css}</style>',unsafe_allow_html=True)
 
 open_cases = full_df[full_df['Case_Status'] == 'Open'].reset_index(drop=True)
 
@@ -68,7 +96,7 @@ distinct_log = open_cases[open_cases['Event_ID'] == 1].reset_index(drop=True)
 total_net_value = distinct_log['NetValue'].sum()
 last_act_table = activity_occurrence(open_cases, colCase, 'Last_Activity')
 cases_bar_df = cases_graph_fn(open_cases,colTimestamp,'Month/Year')
-order_type_count = open_cases.groupby([colProduct,'OrderType']).agg({colCase: ['nunique'], 'NetValue': ['sum']})
+order_type_count = open_cases.groupby([colProduct,'OrderType'], observed=True).agg({colCase: ['nunique'], 'NetValue': ['sum']})
 order_type_count = order_type_count.sort_values(by=('NetValue', 'sum'), ascending=False).reset_index()
 
 with st.container(border=True):
@@ -153,32 +181,3 @@ with st.container(border=True):
     with findings_col2:
         st.markdown('<span style="font-size: 20px; font-weight: bold;">Products Category</span>', unsafe_allow_html=True)
         st.markdown(product_findings, unsafe_allow_html=True)
-
-
-
-
-
-
-css='''
-[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
-    width: fit-content;
-    margin: auto;
-}
-
-[data-testid="stMetricValue"] > div, [data-testid="stMetricLabel"] > div {
-    width: fit-content;
-    margin: auto;
-}
-
-[data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
-    width: fit-content;
-    margin: auto;
-}
-[data-testid="stMetricValue"] > div {
-    font-size: 1.5rem;
-}
-[data-testid="stCheckbox"] > p {
-    font-size: 13px;
-}
-'''
-st.markdown(f'<style>{css}</style>',unsafe_allow_html=True)

@@ -1,23 +1,48 @@
 import streamlit as st
-import pandas as pd
-from prom_functions import *
-from visuals_prom import *
-from dataset_details import *
+import plotly.express as px
+from prom_functions import process_details, unique_count, total_count, activity_occurrence, start_and_end_activities, graph_group_timing,graph_count,var_table_process_analysis,get_unique_items
+from visuals_prom import process_flow_timing,process_flow,process_flow_duration
+from dataset_details import filtered_dataset, full_dataset, full_dataset_edited
 
-colCase = case_id_column()
-colActivity = activity_column()
-colTimestamp = timestamp_column()
-colResources = resources_col()
-colProduct = product_col()
-first_activities = first_activity()
-last_activities = last_activity()
-colCustomer = customer_col()
+colCase = 'Key'
+colActivity = 'Activity'
+colTimestamp = 'Date'
+colResources = 'User'
+colProduct = 'Product_hierarchy'
+colCustomer = 'Customer'
+workgroup = 'Role'
+first_activities = ['Line Creation']
+last_activities = ['Good Issue','Schedule Line Rejected']
 filtered_df = filtered_dataset()
 original_df = full_dataset()
 full_df = full_dataset_edited()
 
 st.title("Process Analysis")
 st.divider()
+
+metric_css='''
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
+    width: fit-content;
+    margin: auto;
+}
+
+[data-testid="stMetricValue"] > div, [data-testid="stMetricLabel"] > div {
+    width: fit-content;
+    margin: auto;
+}
+
+[data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
+    width: fit-content;
+    margin: auto;
+}
+[data-testid="stMetricValue"] > div {
+    font-size: 1.5rem;
+}
+[data-testid="stCheckbox"] > p {
+    font-size: 13px;
+}
+'''
+st.markdown(f'<style>{metric_css}</style>',unsafe_allow_html=True)
 
 # First row and column
 product_column, ordertype_column, vartant_column, conn_column = st.columns([2,2,2,2])
@@ -115,12 +140,17 @@ total_net_value = distinct_log['NetValue'].sum()
 ontime_order_rate = (distinct_log[distinct_log['Delayed'] == 'IN TIME'][colCase].count()/distinct_log[colCase].count())*100
 rejected_orders = (distinct_log[distinct_log['Last_Activity'] == 'Schedule Line Rejected'][colCase].count()/distinct_log[colCase].count())*100
 order_type_pie_df = activity_occurrence(filtered_df_updated, colCase, 'OrderType')
-analysis_process_df = filtered_df_updated.groupby(['OrderType', colCustomer]).agg({colCase: ['nunique'], 'NetValue': ['sum']})
+analysis_process_df = distinct_log.groupby(['OrderType', colCustomer], observed=True).agg({colCase: ['nunique'], 'NetValue': ['sum']})
 analysis_process_df = analysis_process_df.sort_values(by=('NetValue', 'sum'), ascending=False).reset_index()
 start_act = start_and_end_activities(filtered_df_updated, colCase, colActivity, grouping='First_Activity',level='Start')
 end_act = start_and_end_activities(filtered_df_updated, colCase, colActivity, grouping='Last_Activity',level='End')
 pro_det = graph_group_timing(process_details_df, colCase, colTimestamp, colActivity)
 gra_coun = graph_count(filtered_df_updated, colActivity)
+
+issued_rejected_orders = filtered_df_updated.groupby([colCustomer, colProduct, 'Last_Activity'], observed=True).size().unstack(fill_value=0)
+issued_rejected_orders.columns = ['No of Issued', 'No of Rejected']
+issued_rejected_orders = issued_rejected_orders.reset_index()
+issued_rejected_orders = issued_rejected_orders.sort_values(by=['No of Rejected'],ascending=False).reset_index(drop=True)
 
 with st.container(border=True):
     cases_metric, activity_metric, event_metric, net_value_metric, customer_metric, ontime_metric, rejected_order_metric, variant_metric = st.columns(8)
@@ -156,11 +186,11 @@ with st.container(border=True):
 
     with ontime_metric:
         ontime_order_rate = "{:.2f}%".format(ontime_order_rate)
-        st.metric(label="On-time order rate", value=ontime_order_rate, help='The percent of orders that were delivered on time')
+        st.metric(label="OTR", value=ontime_order_rate, help='The percent of orders that were delivered on time')
 
     with rejected_order_metric:
         rejected_orders = "{:.2f}%".format(rejected_orders)
-        st.metric(label="Rejected order rate", value=rejected_orders, help='The percent of orders that were rejected')
+        st.metric(label="RTR", value=rejected_orders, help='The percent of orders that were rejected')
 
 with st.container(border=True):
     process_graph_column, variant_column = st.columns([4,2])
@@ -177,11 +207,11 @@ with st.container(border=True):
             rankdir = st.selectbox("Process graph flow direction", ['LR', 'TB'], index=0)
 
         if graph_type == 'Show duration and case count':
-            process_flow_timing(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
+            process_flow_timing(start_act, end_act,pro_det,gra_coun,colActivity,start='Start',end='End',f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
         elif graph_type == 'Show case count only':
-            process_flow(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
+            process_flow(start_act, end_act,pro_det,gra_coun,colActivity,start='Start',end='End',f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
         else:
-            process_flow_duration(start_act, end_act,pro_det,gra_coun,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
+            process_flow_duration(start_act, end_act,pro_det,gra_coun,colActivity,start='Start',end='End',f_activity='First_Activity',l_activity='Last_Activity', rankdirection=rankdir)
 
     with variant_column:
         st.subheader('Variants')
@@ -203,7 +233,7 @@ with st.container(border=True):
     )
 
 with st.container(border=True):
-    transition_matrix_df = process_details_df.pivot_table(index=colActivity, columns=colActivity+'_2', values=colCase, aggfunc='count').fillna(0)
+    transition_matrix_df = process_details_df.pivot_table(index=colActivity, columns=colActivity+'_2', values=colCase, aggfunc='count', observed=True).fillna(0)
     st.subheader("Transition Matrix", help='This shows the transitions between various activities in the process. The rows are the starting point (source), the columns are the end point (target) and the numbers are the number of times a particular transition occurs')
     st.write(transition_matrix_df.style.format("{:.0f}").background_gradient(cmap='Greens'))
 
@@ -219,11 +249,9 @@ with st.container(border=True):
         st.markdown('<span style="font-size: 16px; font-weight: bold;">Number and Value of orders by product hierarchy and customer</span>', unsafe_allow_html=True)
         st.data_editor(analysis_process_df, hide_index=True, use_container_width=True)
 
-with st.expander(':point_right: View Selected Cases'):
-    case_ids_filtered = filtered_df_updated[colCase].unique()
-    filtered_df_view = original_df[original_df[colCase].isin(case_ids_filtered)]
-    st.dataframe(filtered_df_view, hide_index=True)
-
+with st.container(border=True):
+    st.subheader("Issued vs Rejected orders", help='Number of orders by Customers and Product, showing the number of orders issued and those rejected.')
+    st.dataframe(issued_rejected_orders, hide_index=True, use_container_width=True)
 
 with st.container(border=True):
     st.subheader('Findings')
@@ -281,27 +309,3 @@ with st.container(border=True):
         st.markdown(repeated_activities_findings, unsafe_allow_html=True)
         st.markdown('<span style="font-size: 20px; font-weight: bold;">Rejected Orders</span>', unsafe_allow_html=True)
         st.markdown(rejected_order_findings, unsafe_allow_html=True)
-
-css='''
-[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
-    width: fit-content;
-    margin: auto;
-}
-
-[data-testid="stMetricValue"] > div, [data-testid="stMetricLabel"] > div {
-    width: fit-content;
-    margin: auto;
-}
-
-[data-testid="stMetricValue"] label, [data-testid="stMetricLabel"] label {
-    width: fit-content;
-    margin: auto;
-}
-[data-testid="stMetricValue"] > div {
-    font-size: 1.5rem;
-}
-[data-testid="stCheckbox"] > p {
-    font-size: 13px;
-}
-'''
-st.markdown(f'<style>{css}</style>',unsafe_allow_html=True)

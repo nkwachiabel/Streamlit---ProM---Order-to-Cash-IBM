@@ -2,19 +2,33 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import graphviz
-from dataset_details import *
+# from dataset_details import filtered_dataset,full_dataset,full_dataset_edited
 
-colCase = case_id_column()
-colActivity = activity_column()
-colTimestamp = timestamp_column()
-colResources = resources_col()
-colProduct = product_col()
-first_activities = first_activity()
-last_activities = last_activity()
-colCustomer = customer_col()
-filtered_df = filtered_dataset()
-original_df = full_dataset()
-full_df = full_dataset_edited()
+# colCase = 'Key'
+# colActivity = 'Activity'
+# colTimestamp = 'Date'
+# colResources = 'User'
+# colProduct = 'Product_hierarchy'
+# colCustomer = 'Customer'
+# workgroup = 'Role'
+# first_activities = ['Line Creation']
+# last_activities = ['Good Issue','Schedule Line Rejected']
+# filtered_df = filtered_dataset()
+# original_df = full_dataset()
+# full_df = full_dataset_edited()
+
+
+# colCase = case_id_column()
+# colActivity = activity_column()
+# colTimestamp = timestamp_column()
+# colResources = resources_col()
+# colProduct = product_col()
+# first_activities = first_activity()
+# last_activities = last_activity()
+# colCustomer = customer_col()
+# filtered_df = filtered_dataset()
+# original_df = full_dataset()
+# full_df = full_dataset_edited()
 
 def plot_metric(label, value, prefix="", suffix="", show_graph=False, color_graph=""):
     fig = go.Figure()
@@ -115,7 +129,7 @@ def vertical_bar(df, x_col,y_col,label,color_graph=""):
         )
         st.plotly_chart(fig, use_container_width=True)
 
-def process_flow(start_activity_df, end_activity_df,process_details_df,graph_count_df,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
+def process_flow(start_activity_df, end_activity_df,process_details_df,graph_count_df,activity_col,start='Start',end='End',f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
     g = graphviz.Digraph(engine='dot') # format='png'
     g.attr('node', shape='rectangle', height='0',width='0', fontname="Segoe UI Semibold", fontcolor="#023047", fontsize='10')
     g.attr('edge', arrowhead='vee', arrowtail='inv', fontname="Segoe UI Semibold", fontcolor="#023047",fontsize='10')
@@ -133,15 +147,15 @@ def process_flow(start_activity_df, end_activity_df,process_details_df,graph_cou
         g.edge(str(row[start]), str(row[f_activity]), label="  " + count)
 
     for index, row in process_details_df.iterrows():
-        g.node(row[activity],label=row[activity] + '\n '+ str(graph_count_df[graph_count_df[activity] == row[activity]]['Count'].sum()))
-        g.node(row[activity+'_2'],label=row[activity+'_2'] + '\n '+ str(graph_count_df[graph_count_df[activity] == row[activity+'_2']]['Count'].sum()))
+        g.node(row[activity_col],label=row[activity_col] + '\n '+ str(graph_count_df[graph_count_df[activity_col] == row[activity_col]]['Count'].sum()))
+        g.node(row[activity_col+'_2'],label=row[activity_col+'_2'] + '\n '+ str(graph_count_df[graph_count_df[activity_col] == row[activity_col+'_2']]['Count'].sum()))
 
     for index, row in process_details_df.iterrows():
         startevent, endevent, duration, count = [str(i) for i in row]
-        g.edge(str(row[activity]), str(row[activity+'_2']), label= "  " +  count + " case(s)", penwidth=str(int(count)/max_case_id*max_node+1)) #+'\n '+ "  " + duration + " day(s)"
+        g.edge(str(row[activity_col]), str(row[activity_col+'_2']), label= "  " +  count + " case(s)", penwidth=str((int(count) / max_case_id) * (max_node - 1) + 1)) #+'\n '+ "  " + duration + " day(s)"
 
     for index, row in end_activity_df.iterrows():
-        g.node(row[l_activity],label=row[l_activity] + '\n '+ str(graph_count_df[graph_count_df[activity] == row[l_activity]]['Count'].sum()))
+        g.node(row[l_activity],label=row[l_activity] + '\n '+ str(graph_count_df[graph_count_df[activity_col] == row[l_activity]]['Count'].sum()))
         g.node(row[end], _attributes={'color':'red', 'fontcolor':'red','shape':'doublecircle','style':'filled','fontsize':'0'}, rank='sink')#label="  S  " ,
 
     for index, row in end_activity_df.iterrows():
@@ -150,7 +164,7 @@ def process_flow(start_activity_df, end_activity_df,process_details_df,graph_cou
 
     st.graphviz_chart(g, use_container_width=True)
 
-def process_flow_timing(start_activity_df, end_activity_df,process_details_df,graph_count_df,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
+def process_flow_timing(start_activity_df, end_activity_df,process_details_df,graph_count_df,activity_col,start='Start',end='End',f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
     g = graphviz.Digraph() # format='png'
     g.attr('node', shape='rectangle', height='0',width='0', nodesep='1.5',  fontname="Segoe UI Semibold", fontcolor="#023047", fontsize='10')
     g.attr('edge', arrowhead='vee', arrowtail='inv', fontname="Segoe UI Semibold", fontcolor="#023047",fontsize='10')
@@ -168,15 +182,15 @@ def process_flow_timing(start_activity_df, end_activity_df,process_details_df,gr
         g.edge(str(row[start]), str(row[f_activity]), label="  " + count)
 
     for index, row in process_details_df.iterrows():
-        g.node(row[activity],label=row[activity] + '\n '+ str(graph_count_df[graph_count_df[activity] == row[activity]]['Count'].sum()))
-        g.node(row[activity+'_2'],label=row[activity+'_2'] + '\n '+ str(graph_count_df[graph_count_df[activity] == row[activity+'_2']]['Count'].sum()))
+        g.node(row[activity_col],label=row[activity_col] + '\n '+ str(graph_count_df[graph_count_df[activity_col] == row[activity_col]]['Count'].sum()))
+        g.node(row[activity_col+'_2'],label=row[activity_col+'_2'] + '\n '+ str(graph_count_df[graph_count_df[activity_col] == row[activity_col+'_2']]['Count'].sum()))
 
     for index, row in process_details_df.iterrows():
         startevent, endevent, duration, count = [str(i) for i in row]
-        g.edge(str(row[activity]), str(row[activity+'_2']), label= "  " +  count + " case(s)" +'\n '+ "  " + duration + " day(s)", penwidth=str(int(duration)/max_case_id*max_node+1))
+        g.edge(str(row[activity_col]), str(row[activity_col+'_2']), label= "  " +  count + " case(s)" +'\n '+ "  " + duration + " day(s)", penwidth=str((int(duration) / max_case_id) * (max_node - 1) + 1))
 
     for index, row in end_activity_df.iterrows():
-        g.node(row[l_activity],label=row[l_activity] + '\n '+ str(graph_count_df[graph_count_df[activity] == row[l_activity]]['Count'].sum()))
+        g.node(row[l_activity],label=row[l_activity] + '\n '+ str(graph_count_df[graph_count_df[activity_col] == row[l_activity]]['Count'].sum()))
         g.node(row[end], _attributes={'color':'red', 'fontcolor':'red','shape':'doublecircle','style':'filled','fontsize':'0'})#label="  S  " ,
 
     for index, row in end_activity_df.iterrows():
@@ -185,7 +199,7 @@ def process_flow_timing(start_activity_df, end_activity_df,process_details_df,gr
 
     st.graphviz_chart(g, use_container_width=True)
 
-def process_flow_duration(start_activity_df, end_activity_df,process_details_df,graph_count_df,start='Start',end='End',activity=colActivity,f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
+def process_flow_duration(start_activity_df, end_activity_df,process_details_df,graph_count_df,activity_col,start='Start',end='End',f_activity='First_Activity',l_activity='Last_Activity', rankdirection='TB'):
     g = graphviz.Digraph() # format='png'
     g.attr('node', shape='rectangle', height='0',width='0', fontname="Segoe UI Semibold", fontcolor="#023047", fontsize='10')
     g.attr('edge', arrowhead='vee', arrowtail='inv', fontname="Segoe UI Semibold", fontcolor="#023047",fontsize='10')
@@ -203,15 +217,15 @@ def process_flow_duration(start_activity_df, end_activity_df,process_details_df,
         g.edge(str(row[start]), str(row[f_activity]), label="  " + count)
 
     for index, row in process_details_df.iterrows():
-        g.node(row[activity],label=row[activity] + '\n '+ str(graph_count_df[graph_count_df[activity] == row[activity]]['Count'].sum()))
-        g.node(row[activity+'_2'],label=row[activity+'_2'] + '\n '+ str(graph_count_df[graph_count_df[activity] == row[activity+'_2']]['Count'].sum()))
+        g.node(row[activity_col],label=row[activity_col] + '\n '+ str(graph_count_df[graph_count_df[activity_col] == row[activity_col]]['Count'].sum()))
+        g.node(row[activity_col+'_2'],label=row[activity_col+'_2'] + '\n '+ str(graph_count_df[graph_count_df[activity_col] == row[activity_col+'_2']]['Count'].sum()))
 
     for index, row in process_details_df.iterrows():
         startevent, endevent, duration, count = [str(i) for i in row]
-        g.edge(str(row[activity]), str(row[activity+'_2']), label=  "  " + duration + " day(s)", penwidth=str(int(duration)/max_case_id*max_node+1))
-
+        g.edge(str(row[activity_col]), str(row[activity_col+'_2']), label=  "  " + duration + " day(s)", penwidth=str((int(duration) / max_case_id) * (max_node - 1) + 1))
+        
     for index, row in end_activity_df.iterrows():
-        g.node(row[l_activity],label=row[l_activity] + '\n '+ str(graph_count_df[graph_count_df[activity] == row[l_activity]]['Count'].sum()))
+        g.node(row[l_activity],label=row[l_activity] + '\n '+ str(graph_count_df[graph_count_df[activity_col] == row[l_activity]]['Count'].sum()))
         g.node(row[end], _attributes={'color':'red', 'fontcolor':'red','shape':'doublecircle','style':'filled','fontsize':'0'})#label="  S  " ,
 
     for index, row in end_activity_df.iterrows():
@@ -282,7 +296,7 @@ def user_activity_graph(df):
     ZA.attr('edge', arrowhead='vee', arrowtail='inv',fontname="Sans Bold Italic")
 
     max_node = 3
-    max_case_id = df['Weight'].max()
+    max_case_id = df['Count'].max()
     nodelist2 = []
     for idx, row in df.iterrows():
         node11, node22, weight2 = [str(i) for i in row]
@@ -305,7 +319,7 @@ def workgroup_activity_graph(df):
     ZA.attr('edge', arrowhead='vee', arrowtail='inv',fontname="Sans Bold Italic")
 
     max_node = 3
-    max_case_id = df['Weight'].max()
+    max_case_id = df['Count'].max()
     nodelist2 = []
     for idx, row in df.iterrows():
         node11, node22, weight2 = [str(i) for i in row]
