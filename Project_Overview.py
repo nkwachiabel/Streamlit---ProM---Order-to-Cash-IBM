@@ -5,6 +5,9 @@ st.set_page_config(page_title="Process Mining Order-to-Cash", page_icon=":twiste
 st.title("Process Mining: Analysing the Order-to-Cash process of a cable company")
 st.divider()
 
+with st.sidebar:
+    st.write('Made with :green_heart: by [Nkwachi Abel](https://www.linkedin.com/in/nkwachi-abel)')
+
 with st.container(border=True):
     st.subheader('Project Overview')
     st.write('This project explores the use of data analytics and process mining techniques to analyse the order to cash process of a company.')

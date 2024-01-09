@@ -123,6 +123,3 @@ with st.container(border=True):
     #     autorange='reversed'
     # )
     st.plotly_chart(fig, use_container_width=True)
-
-with st.container(border=True):
-    st.data_editor(activity_chart_df)
